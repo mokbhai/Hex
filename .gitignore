@@ -11,3 +11,8 @@ buildServer.json
 bin
 scripts
 ExportOptions.plist
+
+# Coding Agents Prompts
+.codex/
+.gemini/
+.github/prompts/
