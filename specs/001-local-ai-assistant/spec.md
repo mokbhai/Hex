@@ -104,7 +104,7 @@ As a Mac user, I want to select and download AI models from Hugging Face so that
 - **FR-006**: System MUST perform mathematical calculations and provide results via voice
 - **FR-007**: System MUST create, store, and retrieve notes via voice commands
 - **FR-008**: System MUST manage todo lists via voice commands (add, remove, list items)
-- **FR-009**: System MUST support automated workflow triggers via voice commands
+- **FR-009**: System MUST support automated workflow triggers via voice commands with support for time-based triggers (e.g., "start my morning routine at 9am"), event-based triggers (e.g., calendar events), and context-based triggers (e.g., when current app is Mail)
 - **FR-010**: System MUST adapt responses based on user context (current app, time of day, usage patterns)
 - **FR-011**: System MUST provide clear feedback when voice commands are not recognized, including suggestions for similar commands
 - **FR-016**: System MUST ask for clarification when voice commands are ambiguous
@@ -136,10 +136,10 @@ As a Mac user, I want to select and download AI models from Hugging Face so that
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can complete system control tasks (open/close apps, manage windows) in under 3 seconds from voice command
-- **SC-002**: Voice commands are recognized with 95% accuracy in quiet environments
-- **SC-003**: Information queries return relevant results within 5 seconds
+- **SC-001**: Users can complete system control tasks (open/close apps, manage windows) in under 3 seconds from end of voice input to action execution
+- **SC-002**: Voice commands are recognized with 95% accuracy in quiet environments (<40dB ambient noise), measured over 100+ diverse voice samples covering various accents, speaking speeds, and command variations
+- **SC-003**: Information queries return relevant results within 5 seconds, measured from recognition completion (not from audio input start)
 - **SC-004**: Users successfully complete productivity tasks (timers, calculations, notes) on first attempt 90% of the time
-- **SC-005**: System maintains conversation context across 10+ consecutive voice interactions without user repetition
-- **SC-006**: Automated workflows reduce manual steps by 50% for defined routines
+- **SC-005**: System maintains conversation context across 10+ consecutive voice interactions without user repetition, verified by multi-turn dialogue tests
+- **SC-006**: Automated workflows reduce manual steps by 50% for defined routines, with baseline measurement taken before workflow implementation
 - **SC-007**: Users can download and switch AI models within 5 minutes

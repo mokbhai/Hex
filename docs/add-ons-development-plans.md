@@ -198,7 +198,6 @@ Text Selection → Preprocessing → AI Model → Post-processing → Replace/In
 
 - **Local Processing**: All text processing happens on-device
 - **No Data Transmission**: Selected text never leaves the user's Mac
-- **Model Encryption**: Optional encryption for sensitive AI models
 
 #### 2.5.3 Integration
 
@@ -206,6 +205,94 @@ Text Selection → Preprocessing → AI Model → Post-processing → Replace/In
 - **Preview**: Show changes before applying
 - **Multi-language**: Support for multiple languages
 - **Accessibility**: Full VoiceOver and keyboard navigation support
+
+## Add-on 3: Real-Time AI Voice Enhancement
+
+### Vision
+
+When users dictate, run the draft transcript through an on-device or low-latency LLM pass before it appears in the editor. The model cleans up punctuation, fixes transcription errors, enforces style/tone preferences, and streams improved text back so the experience still feels instantaneous.
+
+### Core Features
+
+#### 3.1 Continuous Text Enhancement
+
+- **Smart Punctuation**: Insert commas, periods, and capitalization in-line with natural speech pauses.
+- **Grammar & Spelling Repair**: Detect and resolve homophones, filler words, and tense mismatches typical in raw dictation.
+- **Clarity & Brevity Options**: Toggle between literal transcription and concise, edited prose per utterance.
+
+#### 3.2 Personalization Controls
+
+- **Tone Presets**: Friendly/professional/technical presets that adjust vocabulary and structure.
+- **Domain Boosting**: Custom dictionaries and few-shot prompts for legal, medical, coding, etc.
+- **Adaptive Memory**: Optional user-specific corrections (names, acronyms) stored locally for future sessions.
+
+#### 3.3 Safety & Transparency
+
+- **Original vs Enhanced View**: Split-view or diff of raw transcription versus LLM output.
+- **Revert/Accept Gestures**: Keyboard shortcut or voice command (“use original”) to undo aggressive edits.
+- **Privacy Guardrails**: Local-first processing with user opt-in before falling back to cloud LLMs.
+
+### Technical Architecture
+
+#### 3.4.1 Processing Pipeline
+
+```
+Voice Input → WhisperKit Transcript → Chunker/Buffer → LLM Enhancement → Streaming Merge → Editor Output
+```
+
+- **Chunker**: Buffer 1–2 sentences to give the LLM enough context without noticeable latency.
+- **LLM Layer**: Prefer quantized local model (Phi-3-mini, Llama 3.1 8B) with optional cloud escalation for long-form edits.
+- **Streaming Merge**: Diff/patch engine so upgraded text can overwrite the in-progress editor buffer without cursor jumps.
+
+#### 3.4.2 Real-Time Transport
+
+- **Async Pipeline**: Dedicated enhancement queue to avoid blocking WhisperKit recognition thread.
+- **Fallback Logic**: If the LLM stalls, bypass enhancement and show raw transcript to maintain responsiveness.
+- **Telemetry Hooks**: Measure latency, edit distance between raw/enhanced text, and user reverts for tuning.
+
+### Implementation Phases
+
+#### Phase 1: Prototype (1 week)
+
+- [ ] Build text-only prototype: feed sample transcripts through chosen LLM and evaluate output quality.
+- [ ] Define prompt templates plus tone/domain parameters.
+- [ ] Instrument latency and quality metrics.
+
+#### Phase 2: Streaming Integration (2 weeks)
+
+- [ ] Implement transcript chunker and queue.
+- [ ] Integrate LLM inference (local CoreML pipeline + optional remote API abstraction).
+- [ ] Build merge algorithm that replaces text in-place while keeping caret position.
+
+#### Phase 3: UX & Controls (1 week)
+
+- [ ] Add toolbar toggle for “Enhanced dictation” with tone presets.
+- [ ] Provide raw/enhanced diff view and quick revert actions.
+- [ ] Surface inline indicators when AI edits a phrase.
+
+#### Phase 4: Optimization & Safety (1-2 weeks)
+
+- [ ] Cache user-specific corrections securely on-device.
+- [ ] Add content filters/toxicity guardrails before text insertion.
+- [ ] Tune models/prompts based on telemetry and user feedback loops.
+
+### User Experience Considerations
+
+#### 3.5.1 Latency Budget
+
+- **Target**: <150 ms added delay per sentence; fall back automatically if exceeded.
+- **Graceful Degradation**: Flash subtle “draft” indicator until enhanced text replaces placeholder.
+
+#### 3.5.2 Trust & Control
+
+- **Explicit Toggle**: Users can disable enhancement globally or per-app.
+- **Audit Trail**: Optional log showing AI edits for compliance-heavy workflows.
+
+#### 3.5.3 Privacy
+
+- **Local Storage Only**: Custom dictionaries and tone settings remain on device.
+- **Cloud Opt-In**: Prompt before sending text to remote LLM; redact sensitive entities when possible.
+- **Model Encryption**: Optional encryption for sensitive AI models
 
 ## Shared Technical Considerations
 
