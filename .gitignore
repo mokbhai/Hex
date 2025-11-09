@@ -12,7 +12,23 @@ bin
 scripts
 ExportOptions.plist
 
+# Xcode Build Artifacts
+DerivedData/
+*.swiftpm/
+*.build/
+build/
+
+# Swift PM
+.build/
+Packages/
+
 # Coding Agents Prompts
 .codex/
 .gemini/
 .github/prompts/
+
+# Misc
+*.log
+*.swp
+.env*
+Thumbs.db

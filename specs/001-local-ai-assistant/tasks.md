@@ -58,11 +58,11 @@
 - [x] T017 [P] [US1] Create SystemCommand enum and execute methods in `Hex/Features/AIAssistant/SystemCommand.swift`
 - [x] T018 [P] [US1] Implement app management command handler in `Hex/Features/AIAssistant/SystemCommand.swift`
 - [x] T019 [P] [US1] Implement window management command handler in `Hex/Features/AIAssistant/SystemCommand.swift`
-- [ ] T020 [US1] Create AIAssistantState extensions for command processing in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
-- [ ] T021 [US1] Add listening state indicator view in `Hex/Views/AIAssistantIndicatorView.swift`
+- [x] T020 [US1] Create AIAssistantState extensions for command processing in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
+- [x] T021 [US1] Add listening state indicator view in `Hex/Views/AIAssistantIndicatorView.swift`
 - [x] T022 [US1] Implement command parsing and intent recognition in `Hex/Features/AIAssistant/IntentRecognizer.swift`
-- [ ] T023 [US1] Add system command execution with error handling in `Hex/Features/AIAssistant/SystemCommandExecutor.swift`
-- [ ] T024 [US1] Create test cases for app launch, window management, system actions in `Hex/Features/AIAssistant/Tests/SystemControlTests.swift`
+- [x] T023 [US1] Add system command execution with error handling in `Hex/Features/AIAssistant/SystemCommandExecutor.swift`
+- [x] T024 [US1] Create test cases for app launch, window management, system actions in `Hex/Features/AIAssistant/Tests/SystemControlTests.swift`
 - [x] T025 [US1] Add voice suggestion feedback for unrecognized commands in `Hex/Features/AIAssistant/CommandSuggester.swift`
 - [x] T026 [US1] Add clarification prompts for ambiguous commands in `Hex/Features/AIAssistant/AmbiguityResolver.swift`
 

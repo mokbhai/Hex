@@ -261,18 +261,62 @@ public struct AIAssistantFeature: Reducer {
 
             case .parseCommand(let text):
                 state.lastRecognizedCommand = text
-                // TODO: Parse command using AI inference
-                return .send(.executeCommand(text))
+                // Parse command using IntentRecognizer
+                let intent = IntentRecognizer.recognize(text)
+                
+                // Route based on recognized intent
+                switch intent {
+                case .systemCommand:
+                    return .send(.executeCommand(text))
+                case .search(let query, let type):
+                    switch type {
+                    case .web:
+                        return .send(.searchWeb(query))
+                    case .local:
+                        return .send(.searchLocal(query))
+                    }
+                case .productivity:
+                    // Route to productivity handler
+                    return .none
+                case .ambiguous(let possibilities):
+                    // Trigger ambiguity resolution
+                    let message = AmbiguityResolver.generateClarificationPrompt(
+                        possibilities.compactMap { possibility in
+                            AmbiguityResolver.detectAmbiguity(possibility)?.first
+                        }
+                    )
+                    return .none
+                case .unknown:
+                    // Get suggestions for unrecognized command
+                    let suggestions = CommandSuggester.suggestCommands(for: text)
+                    return .none
+                }
 
             case .executeCommand(let command):
                 state.isExecutingCommand = true
-                let record = CommandRecord(command: command, result: .success)
-                state.commandHistory.append(record)
-                // TODO: Execute command (system control, search, etc.)
-                return .send(.commandExecutionCompleted(record))
+                
+                // Parse the command string to SystemCommand
+                if let systemCommand = SystemCommand.parse(command) {
+                    return .run { send in
+                        let result = await SystemCommandExecutor.execute(systemCommand)
+                        
+                        let record = CommandRecord(
+                            command: command,
+                            result: result.success ? .success : .failure(result.message)
+                        )
+                        
+                        await send(.commandExecutionCompleted(record))
+                    }
+                } else {
+                    // Command not recognized as system command
+                    let record = CommandRecord(command: command, result: .unrecognized)
+                    state.commandHistory.append(record)
+                    return .send(.commandExecutionCompleted(record))
+                }
 
             case .commandExecutionCompleted(let record):
                 state.isExecutingCommand = false
+                state.commandHistory.append(record)
                 return .none
 
             case .loadAvailableModels:
