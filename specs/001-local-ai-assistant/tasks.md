@@ -17,12 +17,12 @@
 
 **Purpose**: Project initialization and TCA feature structure
 
-- [ ] T001 Create AIAssistant feature module directory structure at `Hex/Features/AIAssistant/`
-- [ ] T002 Create AIClient dependency client skeleton at `Hex/Clients/AIClient.swift`
-- [ ] T003 Create HuggingFaceClient dependency client skeleton at `Hex/Clients/HuggingFaceClient.swift`
-- [ ] T004 [P] Configure CoreData schema for AI models in `Hex/Models/AIModel.swift`
-- [ ] T005 [P] Configure CoreData schema for user data entities in `Hex/Models/Note.swift`, `Hex/Models/TodoItem.swift`, `Hex/Models/Reminder.swift`
-- [ ] T006 [P] Create DependencyValues extensions in `Hex/Clients/AIClient.swift` and `Hex/Clients/HuggingFaceClient.swift`
+- [x] T001 Create AIAssistant feature module directory structure at `Hex/Features/AIAssistant/`
+- [x] T002 Create AIClient dependency client skeleton at `Hex/Clients/AIClient.swift`
+- [x] T003 Create HuggingFaceClient dependency client skeleton at `Hex/Clients/HuggingFaceClient.swift`
+- [x] T004 [P] Configure CoreData schema for AI models in `Hex/Models/AIModel.swift`
+- [x] T005 [P] Configure CoreData schema for user data entities in `Hex/Models/Note.swift`, `Hex/Models/TodoItem.swift`, `Hex/Models/Reminder.swift`
+- [x] T006 [P] Create DependencyValues extensions in `Hex/Clients/AIClient.swift` and `Hex/Clients/HuggingFaceClient.swift`
 
 ---
 
@@ -32,16 +32,16 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Create AIAssistantFeature TCA reducer skeleton with State, Action, and reduce method in `Hex/Features/AIAssistant/AIAssistantFeature.swift`
-- [ ] T008 Implement AIClient protocol with text inference interface in `Hex/Clients/AIClient.swift`
-- [ ] T009 Implement HuggingFaceClient protocol with model discovery and download interface in `Hex/Clients/HuggingFaceClient.swift`
-- [ ] T010 [P] Setup Swift Testing infrastructure with test file `Hex/Features/AIAssistant/Tests/AIAssistantFeatureTests.swift`
-- [ ] T011 Implement hotkey detection integration reusing TranscriptionFeature pattern in `Hex/Features/AIAssistant/AIAssistantFeature.swift`
-- [ ] T012 Create core command executor service in `Hex/Features/AIAssistant/CommandExecutor.swift`
-- [ ] T013 Design unified AIAssistantFeature state schema accommodating all user story needs (system control, models, search, productivity) in `Hex/Features/AIAssistant/StateDesign.md` or code comments
-- [ ] T014 [P] Implement conversation context state machine and persistence in `Hex/Features/AIAssistant/ConversationContextManager.swift` to support SC-005 (10+ interaction continuity)
-- [ ] T015 [P] Implement voice recording cleanup infrastructure in `Hex/Features/AIAssistant/AudioRecordingCleanup.swift` - delete all voice data immediately after processing for privacy compliance (FR-014)
-- [ ] T016 [P] Setup shared API authentication infrastructure for search and external API calls in `Hex/Clients/SharedAPIAuth.swift` supporting Basic Auth and Bearer tokens for reuse across all stories
+- [x] T007 Create AIAssistantFeature TCA reducer skeleton with State, Action, and reduce method in `Hex/Features/AIAssistant/AIAssistantFeature.swift`
+- [x] T008 Implement AIClient protocol with text inference interface in `Hex/Clients/AIClient.swift`
+- [x] T009 Implement HuggingFaceClient protocol with model discovery and download interface in `Hex/Clients/HuggingFaceClient.swift`
+- [x] T010 [P] Setup Swift Testing infrastructure with test file `Hex/Features/AIAssistant/Tests/AIAssistantFeatureTests.swift`
+- [x] T011 Implement hotkey detection integration reusing TranscriptionFeature pattern in `Hex/Features/AIAssistant/HotKeyProcessor.swift`
+- [x] T012 Create core command executor service in `Hex/Features/AIAssistant/CommandExecutor.swift`
+- [x] T013 Design unified AIAssistantFeature state schema accommodating all user story needs (system control, models, search, productivity) in `Hex/Features/AIAssistant/StateDesign.md`
+- [x] T014 [P] Implement conversation context state machine and persistence in `Hex/Features/AIAssistant/ConversationContextManager.swift` to support SC-005 (10+ interaction continuity)
+- [x] T015 [P] Implement voice recording cleanup infrastructure in `Hex/Features/AIAssistant/AudioRecordingCleanup.swift` - delete all voice data immediately after processing for privacy compliance (FR-014)
+- [x] T016 [P] Setup shared API authentication infrastructure for search and external API calls in `Hex/Clients/SharedAPIAuth.swift` supporting Basic Auth and Bearer tokens for reuse across all stories
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -55,16 +55,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Create SystemCommand enum and execute methods in `Hex/Features/AIAssistant/SystemCommand.swift`
-- [ ] T018 [P] [US1] Implement app management command handler in `Hex/Features/AIAssistant/AppCommandHandler.swift`
-- [ ] T019 [P] [US1] Implement window management command handler in `Hex/Features/AIAssistant/WindowCommandHandler.swift`
+- [x] T017 [P] [US1] Create SystemCommand enum and execute methods in `Hex/Features/AIAssistant/SystemCommand.swift`
+- [x] T018 [P] [US1] Implement app management command handler in `Hex/Features/AIAssistant/SystemCommand.swift`
+- [x] T019 [P] [US1] Implement window management command handler in `Hex/Features/AIAssistant/SystemCommand.swift`
 - [ ] T020 [US1] Create AIAssistantState extensions for command processing in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
 - [ ] T021 [US1] Add listening state indicator view in `Hex/Views/AIAssistantIndicatorView.swift`
-- [ ] T022 [US1] Implement command parsing and intent recognition in `Hex/Features/AIAssistant/IntentRecognizer.swift`
+- [x] T022 [US1] Implement command parsing and intent recognition in `Hex/Features/AIAssistant/IntentRecognizer.swift`
 - [ ] T023 [US1] Add system command execution with error handling in `Hex/Features/AIAssistant/SystemCommandExecutor.swift`
 - [ ] T024 [US1] Create test cases for app launch, window management, system actions in `Hex/Features/AIAssistant/Tests/SystemControlTests.swift`
-- [ ] T025 [US1] Add voice suggestion feedback for unrecognized commands in `Hex/Features/AIAssistant/CommandSuggester.swift`
-- [ ] T026 [US1] Add clarification prompts for ambiguous commands in `Hex/Features/AIAssistant/AmbiguityResolver.swift`
+- [x] T025 [US1] Add voice suggestion feedback for unrecognized commands in `Hex/Features/AIAssistant/CommandSuggester.swift`
+- [x] T026 [US1] Add clarification prompts for ambiguous commands in `Hex/Features/AIAssistant/AmbiguityResolver.swift`
 
 **Checkpoint**: User Story 1 is fully functional - users can control system via voice commands independently
 
