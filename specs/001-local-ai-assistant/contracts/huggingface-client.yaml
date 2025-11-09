@@ -1,0 +1,76 @@
+# Hugging Face Client Contract
+
+**Purpose**: Defines the interface for model discovery and download from Hugging Face Hub.
+
+## Endpoints
+
+### GET /models/search
+Search for models on Hugging Face.
+
+**Query Parameters**:
+- q: search query
+- task: model task (text-generation, etc.)
+- limit: max results
+
+**Response**:
+```json
+{
+  "models": [
+    {
+      "id": "microsoft/DialoGPT-medium",
+      "name": "DialoGPT Medium",
+      "task": "text-generation",
+      "downloads": 12345,
+      "size": 512000000
+    }
+  ]
+}
+```
+
+### GET /models/{id}/info
+Get detailed model information.
+
+**Response**:
+```json
+{
+  "id": "string",
+  "name": "string",
+  "description": "string",
+  "tags": ["string"],
+  "downloads": 12345,
+  "size": 512000000,
+  "coreMlCompatible": true
+}
+```
+
+### POST /models/{id}/download
+Initiate model download.
+
+**Request**:
+```json
+{
+  "destination": "string"
+}
+```
+
+**Response**:
+```json
+{
+  "downloadId": "string",
+  "status": "started",
+  "totalSize": 512000000
+}
+```
+
+### GET /downloads/{id}/status
+Check download progress.
+
+**Response**:
+```json
+{
+  "status": "downloading",
+  "progress": 0.75,
+  "bytesDownloaded": 384000000,
+  "totalBytes": 512000000
+}
+```

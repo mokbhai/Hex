@@ -3,7 +3,7 @@
 **Feature Branch**: `001-local-ai-assistant`  
 **Created**: November 6, 2025  
 **Status**: Draft  
-**Input**: User description: "Local AI Assistant: A conversational AI assistant that can perform system tasks and provide information Transform Hex from a simple transcription tool into a comprehensive voice-powered AI assistant that can control your Mac, perform calculations, search the web, and manage tasks through natural voice commands."
+**Input**: User description: "Local AI Assistant: A conversational AI assistant that can perform system tasks and provide information Transform Hex from a simple transcription tool into a comprehensive voice-powered AI assistant that can control your Mac, perform calculations, search the web, and manage tasks through natural voice commands. All the models will be fetched from hf, similar to TranscriptionClient, user should be able to select and download the model that he wants to use. The background agent should only start listening when the hotkey is pressed similar to the current code Voice Transcription Process The end-to-end process of recording and transcribing is managed by `TranscriptionFeature`."
 
 ## Clarifications
 
@@ -14,7 +14,7 @@
 - Q: How should user data (notes, todos, reminders) be stored and persisted? → A: Store locally in app-specific files
 - Q: How should the system handle unrecognized voice commands? → A: Provide suggestions for similar commands
 - Q: How should the system handle ambiguous commands? → A: Ask user to clarify which option they meant
-- Q: How should the AI agent be triggered when the user presses the registered hotkey, different from the voice-to-text hotkey? → A: Start listening immediately in the background with a visual animation indicating the agent is listening
+- Q: How should the AI agent be triggered when the user presses the registered hotkey, different from the voice-to-text hotkey? → A: Start listening immediately in the background with a visual animation indicating the agent is listening, similar to how TranscriptionFeature manages the voice transcription process
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -66,19 +66,19 @@ As a Mac user, I want to use voice commands for productivity tasks so that I can
 
 ---
 
-### User Story 4 - Smart Automation (Priority: P4)
+### User Story 5 - AI Model Management (Priority: P1)
 
-As a Mac user, I want the assistant to learn my patterns and automate workflows so that my daily routines become more efficient.
+As a Mac user, I want to select and download AI models from Hugging Face so that I can choose the best model for my needs and ensure optimal performance.
 
-**Why this priority**: Smart automation provides advanced personalization, enhancing long-term value.
+**Why this priority**: Model selection is fundamental to the AI assistant's capabilities, similar to how transcription models are managed, ensuring the system works effectively.
 
-**Independent Test**: Can be fully tested by triggering automated workflows and observing context-aware responses, delivering personalized assistance.
+**Independent Test**: Can be fully tested by browsing available models, selecting one, and downloading it successfully, delivering model management functionality.
 
 **Acceptance Scenarios**:
 
-1. **Given** user has defined a morning routine, **When** user says "Start my morning routine", **Then** email, calendar, and news apps open automatically
-2. **Given** it's morning and user is in work context, **When** user asks for information, **Then** responses are tailored to work-related topics
-3. **Given** user frequently uses certain commands at specific times, **When** system detects patterns, **Then** it suggests relevant automations
+1. **Given** user accesses model settings, **When** they browse available models from Hugging Face, **Then** a list of compatible models is displayed
+2. **Given** user selects a model, **When** they initiate download, **Then** the model downloads and becomes available for use
+3. **Given** a model is downloaded, **When** user switches to it, **Then** the AI assistant uses the selected model for processing
 
 ### Edge Cases
 
@@ -108,7 +108,10 @@ As a Mac user, I want the assistant to learn my patterns and automate workflows 
 - **FR-010**: System MUST adapt responses based on user context (current app, time of day, usage patterns)
 - **FR-011**: System MUST provide clear feedback when voice commands are not recognized, including suggestions for similar commands
 - **FR-016**: System MUST ask for clarification when voice commands are ambiguous
-- **FR-017**: System MUST start listening immediately when AI agent hotkey is pressed and display a visual animation indicating listening state
+- **FR-017**: System MUST start listening immediately when AI agent hotkey is pressed and display a visual animation indicating listening state, similar to how TranscriptionFeature manages the voice transcription process
+- **FR-018**: System MUST fetch available AI models from Hugging Face
+- **FR-019**: System MUST allow users to select and download AI models for use
+- **FR-020**: System MUST manage downloaded models similar to TranscriptionClient pattern
 - **FR-012**: System MUST handle command failures gracefully with appropriate error messages
 - **FR-013**: System MUST maintain conversation context across multiple voice interactions
 
@@ -119,6 +122,7 @@ As a Mac user, I want the assistant to learn my patterns and automate workflows 
 - **Reminder**: Represents scheduled reminders with message, trigger time, and recurrence settings
 - **Workflow**: Represents automated sequences of actions with trigger conditions and step definitions
 - **User Pattern**: Represents learned user behavior patterns with context triggers and preferred actions
+- **AI Model**: Represents downloadable AI models from Hugging Face with metadata like name, size, capabilities, and local storage path
 
 ## Architecture
 
@@ -138,3 +142,4 @@ As a Mac user, I want the assistant to learn my patterns and automate workflows 
 - **SC-004**: Users successfully complete productivity tasks (timers, calculations, notes) on first attempt 90% of the time
 - **SC-005**: System maintains conversation context across 10+ consecutive voice interactions without user repetition
 - **SC-006**: Automated workflows reduce manual steps by 50% for defined routines
+- **SC-007**: Users can download and switch AI models within 5 minutes
