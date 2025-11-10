@@ -114,6 +114,10 @@
 
 **Checkpoint**: User Story 2 is fully functional - users can search web and local files via voice independently
 
+- [x] T046 [US2] Add support for user-customizable search APIs (Google, Bing, custom) in `Hex/Models/SearchSettings.swift`
+
+**Checkpoint**: Phase 5 Complete! - User Story 2 fully featured with configurable search providers
+
 ---
 
 ## Phase 6: User Story 3 - Voice Productivity Tools (Priority: P3)
