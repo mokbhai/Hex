@@ -321,7 +321,7 @@ public struct AIAssistantFeature: Reducer {
 
             case .loadAvailableModels:
                 state.isLoadingModels = true
-                // TODO: Load available models from HuggingFace
+                // TODO: Load models from HuggingFaceClient
                 return .none
 
             case .availableModelsLoaded(let models):
@@ -335,7 +335,7 @@ public struct AIAssistantFeature: Reducer {
                 return .none
 
             case .downloadModel(let model):
-                // TODO: Initiate model download
+                // TODO: Initiate model download using HuggingFaceClient
                 return .none
 
             case .modelDownloadProgress(let modelId, let progress):

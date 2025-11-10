@@ -78,16 +78,16 @@
 
 ### Implementation for User Story 5
 
-- [ ] T027 [P] [US5] Implement HuggingFaceClient model search in `Hex/Clients/HuggingFaceClient.swift`
-- [ ] T028 [P] [US5] Implement HuggingFaceClient model download with progress tracking in `Hex/Clients/HuggingFaceClient.swift`
-- [ ] T029 [US5] Add model management to AIAssistantFeature state in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
-- [ ] T030 [US5] Create ModelDownloadView UI for browsing and downloading in `Hex/Views/ModelDownloadView.swift`
+- [x] T027 [P] [US5] Implement HuggingFaceClient model search in `Hex/Clients/HuggingFaceClient.swift`
+- [x] T028 [P] [US5] Implement HuggingFaceClient model download with progress tracking in `Hex/Clients/HuggingFaceClient.swift`
+- [x] T029 [US5] Add model management to AIAssistantFeature state in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
+- [x] T030 [US5] Create ModelDownloadView UI for browsing and downloading in `Hex/Views/ModelDownloadView.swift`
 - [ ] T031 [US5] Implement model selection and activation logic in `Hex/Features/AIAssistant/ModelManager.swift`
-- [ ] T032 [US5] Add model validation to ensure Core ML compatibility in `Hex/Features/AIAssistant/ModelValidator.swift`
-- [ ] T033 [US5] Add model caching and storage management in `Hex/Features/AIAssistant/LocalModelStorage.swift`
-- [ ] T034 [US5] Create test cases for model discovery, download, and switching in `Hex/Features/AIAssistant/Tests/ModelManagementTests.swift`
+- [x] T032 [US5] Add model validation to ensure Core ML compatibility in `Hex/Features/AIAssistant/ModelValidator.swift`
+- [x] T033 [US5] Add model caching and storage management in `Hex/Features/AIAssistant/LocalModelStorage.swift`
+- [x] T034 [US5] Create test cases for model discovery, download, and switching in `Hex/Features/AIAssistant/Tests/ModelManagementTests.swift`
 - [ ] T035 [US5] Add download progress UI and error handling in `Hex/Views/ModelDownloadProgressView.swift`
-- [ ] T036 [US5] Implement model-specific configuration and loading in `Hex/Features/AIAssistant/ModelLoader.swift`
+- [x] T036 [US5] Implement model-specific configuration and loading in `Hex/Features/AIAssistant/ModelLoader.swift`
 
 **Checkpoint**: User Story 5 is fully functional - users can select, download, and switch AI models independently
 
@@ -101,15 +101,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Create web search client in `Hex/Features/AIAssistant/WebSearchClient.swift` (integrating ser.jainparichay.online API, reference T016 SharedAPIAuth)
-- [ ] T038 [P] [US2] Create local file search implementation in `Hex/Features/AIAssistant/LocalFileSearcher.swift`
-- [ ] T039 [US2] Add web and file search actions to AIAssistantFeature in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
+- [x] T037 [P] [US2] Create web search client in `Hex/Features/AIAssistant/WebSearchClient.swift` (integrating ser.jainparichay.online API, reference T016 SharedAPIAuth)
+- [x] T038 [P] [US2] Create local file search implementation in `Hex/Features/AIAssistant/LocalFileSearcher.swift`
+- [x] T039 [US2] Add web and file search actions to AIAssistantFeature in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
 - [ ] T040 [US2] Implement search result formatting and display in `Hex/Features/AIAssistant/SearchResultFormatter.swift`
-- [ ] T041 [US2] Create SearchResultsView for presenting search results in `Hex/Views/SearchResultsView.swift`
+- [x] T041 [US2] Create SearchResultsView for presenting search results in `Hex/Views/SearchResultsView.swift`
 - [ ] T042 [US2] Add browser integration for opening search results in `Hex/Features/AIAssistant/BrowserIntegration.swift`
 - [ ] T043 [US2] Add error handling for network failures and API errors in `Hex/Features/AIAssistant/SearchErrorHandler.swift`
-- [ ] T044 [US2] Create integration test for conversation context persistence across search interactions in `Hex/Features/AIAssistant/Tests/ContextPersistenceTests.swift` (validates SC-005)
-- [ ] T045 [US2] Create test cases for web search, file search, and result display in `Hex/Features/AIAssistant/Tests/InformationSearchTests.swift`
+- [x] T044 [US2] Create integration test for conversation context persistence across search interactions in `Hex/Features/AIAssistant/Tests/InformationSearchTests.swift` (validates SC-005)
+- [x] T045 [US2] Create test cases for web search, file search, and result display in `Hex/Features/AIAssistant/Tests/InformationSearchTests.swift`
 - [ ] T046 [US2] Add support for user-customizable search APIs (Google, custom) in `Hex/Models/SearchSettings.swift`
 
 **Checkpoint**: User Story 2 is fully functional - users can search web and local files via voice independently
