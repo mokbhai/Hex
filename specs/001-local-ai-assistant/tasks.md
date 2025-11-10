@@ -128,18 +128,18 @@
 
 ### Implementation for User Story 3
 
-- [ ] T047 [P] [US3] Create timer management service in `Hex/Features/AIAssistant/TimerManager.swift`
-- [ ] T048 [P] [US3] Create calculator service in `Hex/Features/AIAssistant/Calculator.swift`
-- [ ] T049 [P] [US3] Implement note creation and storage in `Hex/Features/AIAssistant/NoteService.swift`
-- [ ] T050 [P] [US3] Implement todo list management in `Hex/Features/AIAssistant/TodoService.swift`
-- [ ] T051 [US3] Add timer, calculator, note, and todo actions to AIAssistantFeature in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
-- [ ] T052 [US3] Create TimerNotificationView for timer alerts in `Hex/Views/TimerNotificationView.swift`
-- [ ] T053 [US3] Create CalculatorResultView for displaying calculation results in `Hex/Views/CalculatorResultView.swift`
-- [ ] T054 [US3] Create NoteEditorView for note creation and editing in `Hex/Views/NoteEditorView.swift`
-- [ ] T055 [US3] Create TodoListView for managing todo items in `Hex/Views/TodoListView.swift`
-- [ ] T056 [US3] Add CoreData persistence for notes and todos in `Hex/Features/AIAssistant/PersistenceService.swift`
-- [ ] T057 [US3] Implement natural language parsing for calculations in `Hex/Features/AIAssistant/CalculationParser.swift`
-- [ ] T058 [US3] Create test cases for timers, calculations, notes, and todos in `Hex/Features/AIAssistant/Tests/ProductivityToolsTests.swift`
+- [x] T047 [P] [US3] Create timer management service in `Hex/Features/AIAssistant/TimerManager.swift`
+- [x] T048 [P] [US3] Create calculator service in `Hex/Features/AIAssistant/Calculator.swift`
+- [x] T049 [P] [US3] Implement note creation and storage in `Hex/Features/AIAssistant/NoteService.swift`
+- [x] T050 [P] [US3] Implement todo list management in `Hex/Features/AIAssistant/TodoService.swift`
+- [x] T051 [US3] Add timer, calculator, note, and todo actions to AIAssistantFeature in `Hex/Features/AIAssistant/AIAssistantFeature.swift` (reference unified state schema from T013)
+- [x] T052 [US3] Create TimerNotificationView for timer alerts in `Hex/Views/TimerNotificationView.swift`
+- [x] T053 [US3] Create CalculatorResultView for displaying calculation results in `Hex/Views/CalculatorResultView.swift`
+- [x] T054 [US3] Create NoteEditorView for note creation and editing in `Hex/Views/NoteEditorView.swift`
+- [x] T055 [US3] Create TodoListView for managing todo items in `Hex/Views/TodoListView.swift`
+- [x] T056 [US3] Add CoreData persistence for notes and todos in `Hex/Features/AIAssistant/PersistenceService.swift`
+- [x] T057 [US3] Implement natural language parsing for calculations in `Hex/Features/AIAssistant/CalculationParser.swift`
+- [x] T058 [US3] Create test cases for timers, calculations, notes, and todos in `Hex/Features/AIAssistant/Tests/ProductivityToolsTests.swift`
 
 **Checkpoint**: All user stories are fully functional - all core AI assistant capabilities work independently
 
