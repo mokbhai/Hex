@@ -23,6 +23,7 @@ Hex is a voice-activated AI assistant that integrates with your macOS system to 
 Hex activates through a customizable hotkey. By default, press and hold the hotkey to start recording voice commands.
 
 **Steps:**
+
 1. Open Hex application
 2. System menu bar icon appears
 3. Configure your preferred hotkey in Settings
@@ -31,6 +32,7 @@ Hex activates through a customizable hotkey. By default, press and hold the hotk
 ### Configuration
 
 First-time setup requires:
+
 - **Select AI Model**: Choose from local Hugging Face models or configure API access
 - **Search Provider**: Select web search backend (Google, Bing, or custom)
 - **Hotkey**: Assign your preferred hotkey combination
@@ -39,6 +41,7 @@ First-time setup requires:
 ### Voice Command Format
 
 Commands are context-sensitive. Hex recognizes intents including:
+
 - **System Control**: "Open Safari", "Close Finder", "Maximize window"
 - **Search**: "Search for quantum computing", "Find Python documentation"
 - **Productivity**: "Set a 5-minute timer", "Calculate 15% of 200", "Create a note about the meeting"
@@ -50,27 +53,28 @@ Commands are context-sensitive. Hex recognizes intents including:
 
 ### Application Management
 
-| Intent | Examples |
-|--------|----------|
-| Open Application | "Open Safari", "Launch Xcode", "Start Calendar" |
-| Close Application | "Close Chrome", "Quit Firefox", "Shut down Finder" |
+| Intent              | Examples                                                |
+| ------------------- | ------------------------------------------------------- |
+| Open Application    | "Open Safari", "Launch Xcode", "Start Calendar"         |
+| Close Application   | "Close Chrome", "Quit Firefox", "Shut down Finder"      |
 | Switch Applications | "Switch to Mail", "Go to Messages", "Activate Terminal" |
-| Minimize Window | "Minimize this window", "Hide Finder" |
-| Maximize Window | "Maximize Safari", "Full screen this app" |
-| Arrange Windows | "Tile windows", "Stack windows" |
+| Minimize Window     | "Minimize this window", "Hide Finder"                   |
+| Maximize Window     | "Maximize Safari", "Full screen this app"               |
+| Arrange Windows     | "Tile windows", "Stack windows"                         |
 
 ### System Commands
 
-| Intent | Examples |
-|--------|----------|
+| Intent         | Examples                                       |
+| -------------- | ---------------------------------------------- |
 | Volume Control | "Increase volume", "Mute", "Set volume to 80%" |
-| Brightness | "Increase brightness", "Dim the screen" |
-| Lock Screen | "Lock my computer", "Engage lock" |
-| Sleep | "Put computer to sleep", "Sleep now" |
+| Brightness     | "Increase brightness", "Dim the screen"        |
+| Lock Screen    | "Lock my computer", "Engage lock"              |
+| Sleep          | "Put computer to sleep", "Sleep now"           |
 
 ### Context-Aware Behavior
 
 Hex remembers recent application contexts and can apply commands intelligently:
+
 - "Open the last file I was working on"
 - "Switch back to where I was before"
 - "Close all tabs in the current browser"
@@ -91,6 +95,7 @@ Search the internet using your configured provider:
 ```
 
 **Supported Providers:**
+
 - **Google Search** (default, requires API key)
 - **Bing Search** (requires API key)
 - **Custom Provider** (use own endpoint)
@@ -108,12 +113,14 @@ Search files on your machine:
 ### Result Handling
 
 Results automatically:
+
 - Format for readability
 - Highlight key information
 - Provide direct links
 - Support opening in browser
 
 **Workflow:**
+
 1. Speak search query
 2. Results display in notification window
 3. Click result to open in browser
@@ -134,6 +141,7 @@ Create and manage countdown timers via voice:
 ```
 
 **Timer Features:**
+
 - Visual countdown
 - Sound alert when complete
 - Multiple simultaneous timers
@@ -152,6 +160,7 @@ Perform arithmetic calculations naturally:
 ```
 
 **Supported Operations:**
+
 - Basic math (addition, subtraction, multiplication, division)
 - Percentages
 - Powers and roots
@@ -168,6 +177,7 @@ Create and manage notes efficiently:
 ```
 
 **Note Features:**
+
 - Voice creation and editing
 - Tagging system for organization
 - Search by tag or content
@@ -185,6 +195,7 @@ Track tasks and maintain productivity:
 ```
 
 **Todo Features:**
+
 - Priority levels (low, medium, high)
 - Completion tracking
 - Due date support
@@ -200,11 +211,13 @@ Track tasks and maintain productivity:
 Hex supports multiple AI models:
 
 **Local Models (via Hugging Face):**
+
 - Mistral 7B (lightweight, fast)
 - Llama 2 7B (balanced)
 - Neural Chat 7B (optimized for chat)
 
 **Remote Models (via API):**
+
 - OpenAI GPT-4
 - Anthropic Claude
 - Custom endpoints
@@ -225,11 +238,11 @@ Models download automatically on selection. Track progress in the model manager:
 
 Choose based on your hardware:
 
-| Model | Size | Speed | Quality | VRAM |
-|-------|------|-------|---------|------|
-| Mistral 7B | 14 GB | Very Fast | Good | 8 GB |
-| Llama 2 7B | 13 GB | Fast | Good | 8 GB |
-| Neural Chat 7B | 15 GB | Fast | Excellent | 8 GB |
+| Model          | Size  | Speed     | Quality   | VRAM |
+| -------------- | ----- | --------- | --------- | ---- |
+| Mistral 7B     | 14 GB | Very Fast | Good      | 8 GB |
+| Llama 2 7B     | 13 GB | Fast      | Good      | 8 GB |
+| Neural Chat 7B | 15 GB | Fast      | Excellent | 8 GB |
 
 ---
 
@@ -240,11 +253,13 @@ Choose based on your hardware:
 Access Settings → Search Providers to:
 
 1. **Choose Provider:**
+
    - Google Search (default)
    - Bing Search
    - Custom endpoint
 
 2. **API Configuration:**
+
    - Enter API key
    - Configure endpoint (if custom)
    - Test connection
@@ -259,6 +274,7 @@ Access Settings → Search Providers to:
 Customize audio responses:
 
 1. **Text-to-Speech:**
+
    - Enable/disable voice responses
    - Choose voice (male, female, accent)
    - Adjust speech rate
@@ -280,6 +296,7 @@ Set your preferred activation key:
 5. Save
 
 **Recommendations:**
+
 - Use modifier keys (Cmd, Option, Control)
 - Avoid system-reserved hotkeys
 - Choose something easy to remember
@@ -289,6 +306,7 @@ Set your preferred activation key:
 Hex learns your patterns:
 
 1. **Automatic Learning:**
+
    - Tracks frequently used applications
    - Remembers recent search topics
    - Learns your preferred response style
@@ -303,10 +321,12 @@ Hex learns your patterns:
 Create automated workflows based on triggers:
 
 1. **Time-Based:**
+
    - "Every morning at 9 AM, read my calendar"
    - "On Fridays, remind me of pending tasks"
 
 2. **Event-Based:**
+
    - "When I open Mail, check for urgent messages"
    - "When battery is low, find charging locations"
 
@@ -321,6 +341,7 @@ Create automated workflows based on triggers:
 ### Microphone Not Recognized
 
 **Solution:**
+
 1. Check System Preferences → Sound → Input
 2. Select correct microphone
 3. Test microphone in Hex settings
@@ -329,12 +350,14 @@ Create automated workflows based on triggers:
 ### Commands Not Recognized
 
 **Check:**
+
 - Microphone is working and positioned correctly
 - You're speaking clearly at normal volume
 - Language is set correctly in settings
 - AI model is loaded and responsive
 
 **Improve Recognition:**
+
 - Use specific command phrasing from examples
 - Avoid background noise
 - Speak naturally without overdoing pronunciation
@@ -342,12 +365,14 @@ Create automated workflows based on triggers:
 ### Search Results Not Appearing
 
 **Verify:**
+
 - Internet connection is active
 - Search provider API key is valid
 - API quota hasn't been exceeded
 - Provider URL is correct (for custom providers)
 
 **Debug:**
+
 - Check API key in Settings
 - Test API connection
 - Review error logs in help menu
@@ -355,6 +380,7 @@ Create automated workflows based on triggers:
 ### Slow Model Loading
 
 **Optimize:**
+
 - Close unnecessary applications
 - Allow time for initial model load
 - Check available disk space
@@ -363,6 +389,7 @@ Create automated workflows based on triggers:
 ### Audio Output Issues
 
 **Troubleshoot:**
+
 - Check System Preferences → Sound → Output
 - Verify speaker connection
 - Adjust volume in Hex settings
@@ -371,6 +398,7 @@ Create automated workflows based on triggers:
 ### Persistent Problems
 
 If issues continue:
+
 1. Check Help → Logs for error details
 2. Visit the Hex troubleshooting guide
 3. Contact support with log files
@@ -404,6 +432,7 @@ If issues continue:
 ### Accessibility
 
 Hex is designed for users of all abilities:
+
 - Voice input for hands-free operation
 - Adjustable text sizes
 - Customizable audio feedback
@@ -423,6 +452,7 @@ Hex is designed for users of all abilities:
 ## Feature Roadmap
 
 Planned features coming soon:
+
 - Multi-language voice support
 - Offline model improvements
 - Calendar integration

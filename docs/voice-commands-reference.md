@@ -33,6 +33,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Open Safari"
 - "Launch Xcode"
 - "Start Calendar"
@@ -40,6 +41,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 - "Go to Finder"
 
 **Supported Applications:**
+
 - Safari, Chrome, Firefox, Edge
 - Mail, Messages, Slack
 - Xcode, VS Code, Terminal
@@ -59,6 +61,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Close Safari"
 - "Quit Xcode"
 - "Exit Finder"
@@ -76,6 +79,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Switch to Chrome"
 - "Go to Mail"
 - "Activate Terminal"
@@ -97,6 +101,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Maximize Safari"
 - "Minimize this window"
 - "Full screen Xcode"
@@ -113,6 +118,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Tile all windows"
 - "Stack these windows"
 - "Snap to left"
@@ -129,6 +135,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Show all windows"
 - "Next window"
 - "Previous window"
@@ -148,6 +155,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Increase volume"
 - "Decrease volume by 20%"
 - "Mute"
@@ -165,6 +173,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Increase brightness"
 - "Decrease brightness"
 - "Set brightness to 50%"
@@ -184,6 +193,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Lock screen"
 - "Sleep now"
 - "Sleep in 30 minutes"
@@ -199,6 +209,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Night shift on"
 - "Enable dark mode"
 
@@ -218,6 +229,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Search for machine learning frameworks"
 - "Find restaurants near me"
 - "Look up Python documentation"
@@ -235,6 +247,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Find all PDFs"
 - "Search for files named project"
 - "Look for spreadsheets"
@@ -250,6 +263,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Search Python in documentation"
 - "Find recent news about AI"
 - "Search GitHub for REST API"
@@ -269,6 +283,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Set a 5-minute timer"
 - "Create a 30-second timer"
 - "Start a 2-hour timer"
@@ -283,6 +298,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Set a 25-minute timer for focused work"
 - "Create a 3-minute timer for microwave"
 - "Set a 60-second timer for eggs"
@@ -300,6 +316,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Pause the timer"
 - "Resume"
 - "Stop the timer"
@@ -321,6 +338,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "What is 25 plus 17?"
 - "100 times 4"
 - "Calculate 500 divided by 5"
@@ -336,6 +354,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "What is 15% of 200?"
 - "Calculate 20% of 500"
 - "10 percent of 1000"
@@ -352,6 +371,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Square root of 256"
 - "10 squared"
 - "2 to the power of 8"
@@ -373,6 +393,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Create a note about the project meeting"
 - "Note: Follow up with Sarah on Tuesday"
 - "Add a note about improving search latency"
@@ -388,6 +409,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Edit the project meeting note"
 - "Add to ideas: performance optimization"
 - "Update my notes about the presentation"
@@ -401,6 +423,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Create a note tagged work"
 - "Add note with tag personal"
 - "Tag this as important"
@@ -415,6 +438,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Find notes about machine learning"
 - "Search my notes for project"
 - "Show notes tagged work"
@@ -434,6 +458,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Add 'review pull requests' to my todos"
 - "Create a task: prepare presentation"
 - "Add task: update documentation"
@@ -449,6 +474,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Add high priority task: fix critical bug"
 - "Create low priority task: clean up old files"
 - "Prepare meeting notes - high priority"
@@ -464,6 +490,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Mark 'review pull requests' as done"
 - "Complete the documentation task"
 - "Check off send email"
@@ -479,6 +506,7 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ```
 
 **Examples:**
+
 - "Show my todos"
 - "List all high priority tasks"
 - "Remove 'old task' from todos"
@@ -536,11 +564,13 @@ This comprehensive reference lists all voice commands supported by Hex, organize
 ### Command Structure
 
 **Natural Phrasing:**
+
 - Commands work best when spoken naturally
 - Avoid stilted or robotic speech patterns
 - Complete your thought before stopping
 
 **Example Variations:**
+
 ```
 "Open Safari" ✓
 "Can you open Safari?" ✓
@@ -582,24 +612,28 @@ You: "Maximize it" (refers to Excel window)
 ## Command Patterns by Use Case
 
 ### Morning Routine
+
 1. "What's the weather?"
 2. "Show my calendar"
 3. "Create a note for today's priorities"
 4. "Set a 30-minute timer"
 
 ### Focus Session
+
 1. "Close Mail and Slack"
 2. "Set a 50-minute timer"
 3. "Disable notifications"
 4. "Full screen VS Code"
 
 ### Research Task
+
 1. "Search for [topic]"
 2. "Create a note with findings"
 3. "Look for related articles"
 4. "Add to research notes"
 
 ### Work Breaks
+
 1. "Set a 5-minute break timer"
 2. "Search for nearby cafes"
 3. "Show calendar for next meeting"
@@ -608,14 +642,14 @@ You: "Maximize it" (refers to Excel window)
 
 ## Keyboard Shortcuts
 
-| Action | Shortcut |
-|--------|----------|
-| Activate Hex | Custom (configured in settings) |
-| Open Settings | Cmd+, |
-| Show Command List | Cmd+? |
-| Clear History | Cmd+Shift+Delete |
-| Stop Listening | Esc |
-| Repeat Last Result | Cmd+R |
+| Action             | Shortcut                        |
+| ------------------ | ------------------------------- |
+| Activate Hex       | Custom (configured in settings) |
+| Open Settings      | Cmd+,                           |
+| Show Command List  | Cmd+?                           |
+| Clear History      | Cmd+Shift+Delete                |
+| Stop Listening     | Esc                             |
+| Repeat Last Result | Cmd+R                           |
 
 ---
 
@@ -671,7 +705,7 @@ Over time, Hex learns your speech patterns and command preferences, improving re
 Command: "Search for pizza"
 Response: [Silence or no results]
 
-Solution: 
+Solution:
 1. Check internet connection
 2. Verify microphone input in settings
 3. Rephrase as "Find pizza restaurants near me"
