@@ -384,7 +384,8 @@ public struct TodoService {
             let checkbox = todo.isCompleted ? "☑" : "☐"
             let dueStr = todo.dueDate.map { " (Due: \(formatter.string(from: $0)))" } ?? ""
 
-            return "\(checkbox) \(todo.description)\n   \(priorityStr)\(dueStr)"
+            let todoDesc = (todo.value(forKey: "descriptionText") as? String) ?? ""
+            return "\(checkbox) \(todoDesc)\n   \(priorityStr)\(dueStr)"
         }.joined(separator: "\n")
     }
 
@@ -426,7 +427,18 @@ extension DependencyValues {
 }
 
 private enum TodoServiceKey: DependencyKey {
-    static let liveValue = TodoService(context: NSManagedObjectContext(concurrencyType: .mainThreadPrivateQueueConcurrencyType))
-    static let previewValue = TodoService(context: NSManagedObjectContext(concurrencyType: .mainThreadPrivateQueueConcurrencyType))
-    static let testValue = TodoService(context: NSManagedObjectContext(concurrencyType: .mainThreadPrivateQueueConcurrencyType))
+    static let liveValue: TodoService = {
+        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        return TodoService(context: context)
+    }()
+    
+    static let previewValue: TodoService = {
+        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        return TodoService(context: context)
+    }()
+    
+    static let testValue: TodoService = {
+        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        return TodoService(context: context)
+    }()
 }

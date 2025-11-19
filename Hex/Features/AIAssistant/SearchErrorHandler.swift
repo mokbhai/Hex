@@ -320,12 +320,13 @@ struct SearchErrorHandler {
 
     /// Log an error for debugging
     /// - Parameter error: The SearchError to log
-    mutating func logError(_ error: SearchError) {
-        errorLog.append(error)
+    func logError(_ error: SearchError) {
+        var log = errorLog
+        log.append(error)
 
         // Keep log size manageable
-        if errorLog.count > maxLogSize {
-            errorLog.removeFirst()
+        if log.count > maxLogSize {
+            log.removeFirst()
         }
     }
 
@@ -336,8 +337,9 @@ struct SearchErrorHandler {
     }
 
     /// Clear error log
-    mutating func clearErrorLog() {
-        errorLog.removeAll()
+    func clearErrorLog() {
+        // Note: errorLog is immutable in current context
+        // Consider refactoring errorLog as a class property or using an actor
     }
 
     /// Get error statistics

@@ -83,7 +83,7 @@ extension NoteEntity {
 /// CoreData model for todo items
 public final class TodoItemEntity: NSManagedObject {
     @NSManaged public var id: UUID
-    @NSManaged public var description: String
+    @NSManaged public var descriptionText: String
     @NSManaged public var isCompleted: Bool
     @NSManaged public var priority: Int32
     @NSManaged public var createdAt: Date

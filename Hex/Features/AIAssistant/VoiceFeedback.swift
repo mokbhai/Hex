@@ -67,16 +67,17 @@ actor VoiceFeedback {
             return
         }
         
-        let timer = performanceMetrics.startMeasurement(label: "voice_synthesis")
-        defer { timer.end() }
-        
         do {
             try await synthesizeAndPlay(text)
         } catch {
-            logger.logError(error, context: [
-                "operation": "voice_speak",
-                "text_length": text.count
-            ])
+            // Log error asynchronously
+            Task {
+                await logger.log(
+                    severity: .error,
+                    category: "Voice",
+                    message: "Voice synthesis failed: \(error.localizedDescription)"
+                )
+            }
             throw error
         }
     }
@@ -123,9 +124,6 @@ actor VoiceFeedback {
     
     /// Play a system sound
     func playSystemSound(_ soundName: String) async throws {
-        let timer = performanceMetrics.startMeasurement(label: "system_sound")
-        defer { timer.end() }
-        
         guard let soundURL = Bundle.main.url(forResource: soundName, withExtension: "mp3") else {
             throw VoiceFeedbackError.playbackFailed("Sound file not found: \(soundName)")
         }
@@ -151,13 +149,22 @@ actor VoiceFeedback {
     // MARK: - Private Methods
     
     private func configureAudioSession() {
+        #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, options: [.duckOthers, .interruptSpokenAudioAndMixWithOthers])
             try session.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
-            logger.logError(error, context: ["operation": "configure_audio_session"])
+            // Log async in the background
+            Task {
+                await logger.log(
+                    severity: .error,
+                    category: "Voice",
+                    message: "Audio session configuration failed: \(error.localizedDescription)"
+                )
+            }
         }
+        #endif
     }
     
     private func synthesizeAndPlay(_ text: String) async throws {
@@ -288,19 +295,17 @@ private class AudioPlayerDelegate: NSObject, AVAudioPlayerDelegate {
 
 // MARK: - TCA Integration
 
-extension VoiceFeedback: DependencyKey {
+extension DependencyValues {
+    var voiceFeedback: VoiceFeedback {
+        get { self[VoiceFeedbackKey.self] }
+        set { self[VoiceFeedbackKey.self] = newValue }
+    }
+}
+
+private enum VoiceFeedbackKey: DependencyKey {
     static let liveValue = VoiceFeedback()
     
     static let testValue = VoiceFeedback(
-        settings: VoiceSettings(enabled: false),
-        logger: ErrorLogger.testValue,
-        metrics: PerformanceMetrics.testValue
+        settings: VoiceFeedback.VoiceSettings(enabled: false)
     )
-}
-
-extension DependencyValues {
-    var voiceFeedback: VoiceFeedback {
-        get { self[VoiceFeedback.self] }
-        set { self[VoiceFeedback.self] = newValue }
-    }
 }

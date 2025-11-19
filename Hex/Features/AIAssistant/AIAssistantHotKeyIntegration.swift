@@ -3,7 +3,7 @@ import ComposableArchitecture
 
 /// Hotkey integration for AI Assistant
 /// Reuses the TranscriptionFeature hotkey pattern for consistency
-public struct HotKeyProcessor {
+public struct AIAssistantHotKeyProcessor {
     /// Process hotkey events for AI Assistant activation
     /// 
     /// This component reuses patterns from TranscriptionFeature to maintain consistency.
@@ -42,7 +42,7 @@ public struct HotKeyProcessor {
 extension HotKey {
     /// Default hotkey for AI Assistant
     /// Consider: Cmd+Shift+Space (or Cmd+Option+Space for compatibility)
-    static let aiAssistant = HotKey(
+    public static let aiAssistant = HotKey(
         key: .space,
         modifiers: [.command, .shift]
     )

@@ -3,7 +3,7 @@ import ComposableArchitecture
 import Combine
 
 /// Comprehensive settings for the AI Assistant feature
-struct AIAssistantSettings: Codable, Equatable {
+public struct AIAssistantSettings: Codable, Equatable {
     // MARK: - Basic Settings
     var isEnabled: Bool = true
     var autoLaunchOnStartup: Bool = false
@@ -134,7 +134,7 @@ actor AIAssistantSettingsManager {
         AIAssistantSettings()
     }
     
-    nonisolated private init() {
+    private init() {
         let appSupportDirectory = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -385,9 +385,11 @@ actor AIAssistantSettingsManager {
     
     // MARK: - Notifications
     
-    @MainActor
-    private func notifySettingsChanged() {
-        AIAssistantSettingsManager.settingsDidChange.send(currentSettings)
+    private func notifySettingsChanged() async {
+        let settings = currentSettings
+        await MainActor.run {
+            AIAssistantSettingsManager.settingsDidChange.send(settings)
+        }
     }
     
     // MARK: - Cleanup

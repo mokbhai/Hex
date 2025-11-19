@@ -47,8 +47,7 @@ public struct SystemCommandExecutor {
 
         do {
             try workspace.launchApplication(
-                appURL.path,
-                arguments: []
+                appURL.path
             )
 
             return CommandExecutionResult(

@@ -76,16 +76,16 @@ public class CertificatePinningDelegate: NSObject, URLSessionDelegate {
             return nil
         }
 
-        var publicKeyRef: SecKey?
-        let keyCreateStatus = SecCertificateCopyKey(certificate, &publicKeyRef)
-
-        guard keyCreateStatus == errSecSuccess,
-              let publicKey = publicKeyRef else {
+        // Extract public key using SecCertificateCopyPublicKey (available on macOS 10.15+)
+        guard let publicKey = SecCertificateCopyPublicKey(certificate) else {
             return nil
         }
 
-        let keyData = SecKeyCopyExternalRepresentation(publicKey, nil) as Data?
-        return keyData?.base64EncodedString()
+        var error: Unmanaged<CFError>?
+        guard let keyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? else {
+            return nil
+        }
+        return keyData.base64EncodedString()
     }
 
     /// Temporarily disable pinning for development
@@ -110,28 +110,28 @@ public actor EncryptedDataStore {
     /// Store encrypted data for given key
     /// - Automatically encrypts before writing
     /// - Uses device-specific encryption key
-    public func setEncrypted<T: Encodable>(value: T, forKey key: String) throws {
+    public func setEncrypted<T: Encodable>(value: T, forKey key: String) async throws {
         let encoded = try JSONEncoder().encode(value)
-        let encrypted = try encryptData(encoded)
-        try keychain.storeData(encrypted, forKey: key)
+        let encrypted = try await encryptData(encoded)
+        try await keychain.storeData(encrypted, forKey: key)
     }
 
     /// Retrieve and decrypt data for key
     /// - Returns nil if key doesn't exist
     /// - Automatically decrypts retrieved data
-    public func getEncrypted<T: Decodable>(forKey key: String, type: T.Type) throws -> T? {
-        guard let encryptedData = try keychain.retrieveData(forKey: key) else {
+    public func getEncrypted<T: Decodable>(forKey key: String, type: T.Type) async throws -> T? {
+        guard let encryptedData = try await keychain.retrieveData(forKey: key) else {
             return nil
         }
 
-        let decrypted = try decryptData(encryptedData)
+        let decrypted = try await decryptData(encryptedData)
         return try JSONDecoder().decode(T.self, from: decrypted)
     }
 
     // MARK: - Encryption/Decryption
 
-    private func encryptData(_ data: Data) throws -> Data {
-        let key = try keychain.getOrCreateEncryptionKey()
+    private func encryptData(_ data: Data) async throws -> Data {
+        let key = try await keychain.getOrCreateEncryptionKey()
         let sealedBox = try AES.GCM.seal(data, using: key)
 
         guard let combinedData = sealedBox.combined else {
@@ -141,8 +141,8 @@ public actor EncryptedDataStore {
         return combinedData
     }
 
-    private func decryptData(_ data: Data) throws -> Data {
-        let key = try keychain.getOrCreateEncryptionKey()
+    private func decryptData(_ data: Data) async throws -> Data {
+        let key = try await keychain.getOrCreateEncryptionKey()
         let sealedBox = try AES.GCM.SealedBox(combined: data)
         return try AES.GCM.open(sealedBox, using: key)
     }

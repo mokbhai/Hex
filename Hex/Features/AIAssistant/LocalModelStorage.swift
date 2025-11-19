@@ -105,7 +105,7 @@ public struct LocalModelStorage {
 
                 if fileManager.fileExists(atPath: metadataPath.path),
                    let attributes = try? fileManager.attributesOfItem(atPath: metadataPath.path),
-                   let accessTime = attributes[.contentAccessDate] as? Date {
+                   let accessTime = attributes[FileAttributeKey.modificationDate] as? Date {
 
                     // Calculate total size of this model directory
                     var modelSize: Int64 = 0

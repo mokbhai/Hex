@@ -47,10 +47,10 @@ struct CommandHistoryEntry: Codable, Identifiable {
 struct CommandPattern: Codable, Identifiable {
     let id: UUID
     let pattern: String // normalized command pattern
-    let frequency: Int
-    let successRate: Double
-    let averageExecutionTime: TimeInterval
-    let lastUsed: Date
+    var frequency: Int
+    var successRate: Double
+    var averageExecutionTime: TimeInterval
+    var lastUsed: Date
     let relatedCommands: [String]
     
     init(pattern: String) {
@@ -92,7 +92,12 @@ actor CommandHistory {
         var commandSequence: [String] = []
         var timeOfDayDistribution: [Int: Int] = [:] // hour -> count
         var dayOfWeekDistribution: [Int: Int] = [:] // 0-6 (Sun-Sat) -> count
-        var frequencyTrend: [(date: Date, count: Int)] = []
+        var frequencyTrend: [FrequencyData] = []
+        
+        struct FrequencyData: Codable {
+            let date: Date
+            let count: Int
+        }
     }
     
     /// Configuration for history tracking
@@ -107,7 +112,7 @@ actor CommandHistory {
     private let config: Configuration
     private var persistenceTask: Task<Void, Never>?
     
-    nonisolated private init() {
+    private init() {
         self.config = Configuration()
         
         // Setup history directory

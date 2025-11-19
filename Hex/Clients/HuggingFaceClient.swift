@@ -266,10 +266,10 @@ public struct HuggingFaceClient: HuggingFaceClientProtocol {
                 let task: String?
                 let downloads: Int?
                 let gated: Bool?
-                let private: Bool?
+                let `private`: Bool?
 
                 enum CodingKeys: String, CodingKey {
-                    case id, name, task, downloads, gated, private
+                    case id, name, task, downloads, gated, `private`
                     case modelId = "model_id"
                 }
             }
@@ -279,7 +279,7 @@ public struct HuggingFaceClient: HuggingFaceClientProtocol {
             let response = try decoder.decode(SearchResponse.self, from: data)
 
             let models = response.models?
-                .filter { !($0.gated ?? false) && !($0.private ?? false) }
+                .filter { !($0.gated ?? false) && !($0.`private` ?? false) }
                 .map { result in
                     HuggingFaceModel(
                         id: result.modelId.isEmpty ? result.id : result.modelId,
@@ -328,7 +328,7 @@ public struct HuggingFaceClient: HuggingFaceClientProtocol {
             let description: String?
             let tags: [String]?
             let downloads: Int?
-            let private: Bool?
+            let `private`: Bool?
             let gated: Bool?
             let siblings: [FileInfo]?
 
@@ -338,7 +338,7 @@ public struct HuggingFaceClient: HuggingFaceClientProtocol {
             }
 
             enum CodingKeys: String, CodingKey {
-                case id, name, description, tags, downloads, private, gated, siblings
+                case id, name, description, tags, downloads, `private`, gated, siblings
                 case modelId = "model_id"
             }
         }
@@ -402,8 +402,8 @@ public struct HuggingFaceClient: HuggingFaceClientProtocol {
         var request = URLRequest(url: downloadURL)
         request.timeoutInterval = 3600 // 1 hour timeout for downloads
 
-        let task = session.downloadTask(with: request) { [weak self] tempURL, response, error in
-            self?.handleDownloadCompletion(downloadId, tempURL: tempURL, response: response, error: error, destination: destination)
+        let task = session.downloadTask(with: request) { tempURL, response, error in
+            Self.handleDownloadCompletion(downloadId, tempURL: tempURL, response: response, error: error, destination: destination)
         }
 
         // Store task and initialize progress
@@ -461,7 +461,7 @@ public struct HuggingFaceClient: HuggingFaceClientProtocol {
 
     // MARK: - Helper Methods
 
-    private func handleDownloadCompletion(
+    private static func handleDownloadCompletion(
         _ downloadId: String,
         tempURL: URL?,
         response: URLResponse?,

@@ -305,7 +305,13 @@ public class InferenceContext {
 public actor AsyncQueue {
     private let maxConcurrentOperations: Int
     private var runningOperations: Int = 0
-    private var pendingOperations: [(String, @escaping () async -> Void)] = []
+    
+    private struct PendingOperation {
+        let id: String
+        let operation: () async -> Void
+    }
+    
+    private var pendingOperations: [PendingOperation] = []
 
     public init(maxConcurrentOperations: Int = 1) {
         self.maxConcurrentOperations = maxConcurrentOperations
@@ -317,7 +323,7 @@ public actor AsyncQueue {
         }
 
         runningOperations += 1
-        pendingOperations.append((id, operation))
+        pendingOperations.append(PendingOperation(id: id, operation: operation))
 
         Task {
             await executeNextOperation()
@@ -325,7 +331,7 @@ public actor AsyncQueue {
     }
 
     private func executeNextOperation() async {
-        guard let (id, operation) = pendingOperations.first else {
+        guard let pending = pendingOperations.first else {
             runningOperations -= 1
             return
         }
@@ -333,9 +339,9 @@ public actor AsyncQueue {
         pendingOperations.removeFirst()
 
         do {
-            await operation()
+            await pending.operation()
         } catch {
-            print("Operation \(id) failed: \(error)")
+            print("Operation \(pending.id) failed: \(error)")
         }
     }
 }

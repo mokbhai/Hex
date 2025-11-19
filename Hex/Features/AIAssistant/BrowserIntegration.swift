@@ -153,11 +153,11 @@ actor BrowserIntegration {
     ///   - results: Array of SearchResults to open
     ///   - maxResults: Maximum number of results to open (default: 5)
     /// - Throws: BrowserIntegrationError if opening fails
-    func openSearchResults(_ results: [SearchResult], maxResults: Int = 5) async throws {
+    func openSearchResults(_ results: [AIAssistantFeature.SearchResult], maxResults: Int = 5) async throws {
         let urls = results
             .prefix(maxResults)
             .filter { $0.source == .web }
-            .map { $0.url }
+            .compactMap { $0.url }
 
         try await openURLs(urls)
     }
@@ -206,19 +206,21 @@ actor BrowserIntegration {
     // MARK: - Private Methods
 
     private func openNSURL(_ url: URL, in browser: BrowserType) async throws {
-        let config = NSWorkspaceOpenConfiguration()
+        let config = NSWorkspace.OpenConfiguration()
         config.promptsUserIfNeeded = false
 
         guard isBrowserAvailable(browser) else {
             throw BrowserIntegrationError.noBrowserAvailable
         }
 
-        guard let appURL = URL(fileURLWithPath: workspace.absolutePathForApplication(withBundleIdentifier: browser.bundleIdentifier) ?? "") else {
+        guard let appPath = workspace.absolutePathForApplication(withBundleIdentifier: browser.bundleIdentifier) else {
             throw BrowserIntegrationError.noBrowserAvailable
         }
 
+        let appURL = URL(fileURLWithPath: appPath)
+
         do {
-            _ = try workspace.open([url], withApplicationAt: appURL, configuration: config)
+            _ = try await workspace.open([url], withApplicationAt: appURL, configuration: config)
         } catch {
             throw BrowserIntegrationError.failedToOpen(url.absoluteString)
         }

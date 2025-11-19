@@ -1,4 +1,43 @@
 import Foundation
+import ComposableArchitecture
+
+// MARK: - SearchResult Type Definition
+
+/// Search result structure used throughout the application
+struct SearchResult: Equatable, Identifiable {
+    public let id: UUID
+    public let title: String
+    public let url: String
+    public var snippet: String?
+    public let source: SearchSource
+    public var fileType: String?
+    public var relevance: Double?
+
+    enum SearchSource: String, Equatable {
+        case web
+        case local
+    }
+
+    init(
+        id: UUID = UUID(),
+        title: String,
+        url: String,
+        snippet: String? = nil,
+        source: SearchSource,
+        fileType: String? = nil,
+        relevance: Double? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.url = url
+        self.snippet = snippet
+        self.source = source
+        self.fileType = fileType
+        self.relevance = relevance
+    }
+}
+
+// MARK: - SearchResultFormatter
 
 /// Formats search results for display and voice feedback
 /// Handles consistent formatting of web and local file search results
@@ -310,13 +349,13 @@ extension SearchResultFormatter {
 
         // Test various formats
         print("=== Brief Format ===")
-        print(formatter.format(webResult, style: .brief))
+        print(formatter.format(webResult, style: SearchResultFormatter.FormatStyle.brief))
 
         print("\n=== Detailed Format ===")
-        print(formatter.format(webResult, style: .detailed))
+        print(formatter.format(webResult, style: SearchResultFormatter.FormatStyle.detailed))
 
         print("\n=== Numbered Format ===")
-        print(formatter.formatResults(results, style: .numbered))
+        print(formatter.formatResults(results, style: SearchResultFormatter.FormatStyle.numbered))
 
         print("\n=== Voice Format ===")
         print(formatter.formatForVoice(webResult))

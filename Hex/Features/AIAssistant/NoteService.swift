@@ -290,7 +290,18 @@ extension DependencyValues {
 }
 
 private enum NoteServiceKey: DependencyKey {
-    static let liveValue = NoteService(context: NSManagedObjectContext(concurrencyType: .mainThreadPrivateQueueConcurrencyType))
-    static let previewValue = NoteService(context: NSManagedObjectContext(concurrencyType: .mainThreadPrivateQueueConcurrencyType))
-    static let testValue = NoteService(context: NSManagedObjectContext(concurrencyType: .mainThreadPrivateQueueConcurrencyType))
+    static let liveValue: NoteService = {
+        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        return NoteService(context: context)
+    }()
+    
+    static let previewValue: NoteService = {
+        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        return NoteService(context: context)
+    }()
+    
+    static let testValue: NoteService = {
+        let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        return NoteService(context: context)
+    }()
 }

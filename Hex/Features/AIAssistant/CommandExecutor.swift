@@ -23,7 +23,7 @@ public struct CommandExecutor {
         // 4. Return CommandRecord with success/failure status
         // 5. Handle errors gracefully with helpful messages
 
-        .fireAndForget {
+        .run { _ in
             // Placeholder implementation
             let record = AIAssistantFeature.CommandRecord(
                 command: command,

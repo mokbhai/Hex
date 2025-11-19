@@ -43,9 +43,9 @@ public struct AudioRecordingCleanup {
         sessionId: UUID,
         audioData: Data
     ) -> Effect<AIAssistantFeature.Action> {
-        return .fireAndForget {
+        return .run { _ in
             // Schedule cleanup immediately (don't wait for completion)
-            DispatchQueue.global(qos: .background).async {
+            Task {
                 await performSecureDelete(sessionId, audioData)
             }
         }
@@ -77,7 +77,7 @@ public struct AudioRecordingCleanup {
             // Generate random bytes and overwrite
             var randomBytes = [UInt8](repeating: 0, count: buffer.count)
             _ = SecureRandom.getRandomBytes(&randomBytes, count: buffer.count)
-            buffer.baseAddress?.memmove(&randomBytes, buffer.count)
+            memcpy(buffer.baseAddress, &randomBytes, buffer.count)
         }
     }
 
@@ -128,7 +128,7 @@ public struct AudioRecordingCleanup {
     /// - Parameter sessionIds: Sessions to cleanup immediately
     /// - Returns: Effect that performs forced cleanup
     public static func forceCleanup(_ sessionIds: [UUID]) -> Effect<AIAssistantFeature.Action> {
-        return .fireAndForget {
+        return .run { _ in
             // TODO: T015 Force Cleanup
             // 1. Validate sessions exist
             // 2. Perform immediate deletion

@@ -41,7 +41,7 @@ public struct IntentRecognizer {
         let trimmed = input.trimmingCharacters(in: .whitespaces)
 
         // Try system commands first (highest priority)
-        if let command = SystemCommand.parse(trimmed) {
+        if let command = CommandParser.parse(trimmed) {
             return .systemCommand(command)
         }
 

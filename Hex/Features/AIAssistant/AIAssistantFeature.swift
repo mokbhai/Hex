@@ -43,7 +43,7 @@ public struct AIAssistantFeature: Reducer {
         public var errorHistory: [AIAssistantError] = []
 
         // MARK: Settings
-        public var settings: AIAssistantSettings = .default
+        public var settings: AIAssistantSettings = AIAssistantSettingsManager.defaultSettings()
     }
 
     // MARK: - Conversation Context (for SC-005 support)
@@ -296,7 +296,7 @@ public struct AIAssistantFeature: Reducer {
                 state.isExecutingCommand = true
                 
                 // Parse the command string to SystemCommand
-                if let systemCommand = SystemCommand.parse(command) {
+                if let systemCommand = CommandParser.parse(command) {
                     return .run { send in
                         let result = await SystemCommandExecutor.execute(systemCommand)
                         
@@ -448,12 +448,4 @@ public struct AIModel: Equatable, Identifiable {
     }
 }
 
-public struct AIAssistantSettings: Equatable {
-    public var searchProvider: String = "google"
-    public var voiceFeedbackEnabled: Bool = true
-    public var commandHistoryEnabled: Bool = true
-    public var contextPersistenceEnabled: Bool = true
-    public var privacyMode: Bool = false // When true, don't store conversation history
 
-    public static let `default` = AIAssistantSettings()
-}
