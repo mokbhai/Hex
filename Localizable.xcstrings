@@ -106,6 +106,9 @@
     "Assign a shortcut (modifier + key) to instantly paste your last transcription." : {
 
     },
+    "Assign a shortcut to replace selected text with a preset message." : {
+
+    },
     "Audio Behavior while Recording" : {
 
     },
@@ -625,6 +628,9 @@
 
     },
     "Saves the last 30 minutes of Hex diagnostics so you can share them with support." : {
+
+    },
+    "Select Text Hotkey" : {
 
     },
     "Selected device not connected. System default will be used." : {

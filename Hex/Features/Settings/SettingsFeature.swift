@@ -16,9 +16,13 @@ extension SharedReaderKey
   static var isSettingHotKey: Self {
     Self[.inMemory("isSettingHotKey"), default: false]
   }
-  
+
   static var isSettingPasteLastTranscriptHotkey: Self {
     Self[.inMemory("isSettingPasteLastTranscriptHotkey"), default: false]
+  }
+
+  static var isSettingSelectTextHotkey: Self {
+    Self[.inMemory("isSettingSelectTextHotkey"), default: false]
   }
 }
 
@@ -31,6 +35,7 @@ struct SettingsFeature {
     @Shared(.hexSettings) var hexSettings: HexSettings
     @Shared(.isSettingHotKey) var isSettingHotKey: Bool = false
     @Shared(.isSettingPasteLastTranscriptHotkey) var isSettingPasteLastTranscriptHotkey: Bool = false
+    @Shared(.isSettingSelectTextHotkey) var isSettingSelectTextHotkey: Bool = false
     @Shared(.transcriptionHistory) var transcriptionHistory: TranscriptionHistory
     @Shared(.hotkeyPermissionState) var hotkeyPermissionState: HotkeyPermissionState
     @Shared(.textTransformations) var textTransformations: TextTransformationsState
@@ -38,6 +43,7 @@ struct SettingsFeature {
     var languages: IdentifiedArrayOf<Language> = []
     var currentModifiers: Modifiers = .init(modifiers: [])
     var currentPasteLastModifiers: Modifiers = .init(modifiers: [])
+    var currentSelectTextModifiers: Modifiers = .init(modifiers: [])
     
     // Available microphones
     var availableInputDevices: [AudioInputDevice] = []
@@ -58,6 +64,8 @@ struct SettingsFeature {
     case startSettingHotKey
     case startSettingPasteLastTranscriptHotkey
     case clearPasteLastTranscriptHotkey
+    case startSettingSelectTextHotkey
+    case clearSelectTextHotkey
     case keyEvent(KeyEvent)
     case toggleOpenOnLogin(Bool)
     case togglePreventSystemSleep(Bool)
@@ -190,9 +198,18 @@ struct SettingsFeature {
         state.$isSettingPasteLastTranscriptHotkey.withLock { $0 = true }
         state.currentPasteLastModifiers = .init(modifiers: [])
         return .none
-        
+
       case .clearPasteLastTranscriptHotkey:
         state.$hexSettings.withLock { $0.pasteLastTranscriptHotkey = nil }
+        return .none
+
+      case .startSettingSelectTextHotkey:
+        state.$isSettingSelectTextHotkey.withLock { $0 = true }
+        state.currentSelectTextModifiers = .init(modifiers: [])
+        return .none
+
+      case .clearSelectTextHotkey:
+        state.$hexSettings.withLock { $0.selectTextHotkey = nil }
         return .none
 
       case let .keyEvent(keyEvent):
@@ -218,7 +235,30 @@ struct SettingsFeature {
           }
           return .none
         }
-        
+
+        // Handle select text hotkey setting
+        if state.isSettingSelectTextHotkey {
+          if keyEvent.key == .escape {
+            state.$isSettingSelectTextHotkey.withLock { $0 = false }
+            state.currentSelectTextModifiers = []
+            return .none
+          }
+
+          state.currentSelectTextModifiers = keyEvent.modifiers.union(state.currentSelectTextModifiers)
+          let currentModifiers = state.currentSelectTextModifiers
+          if let key = keyEvent.key {
+            guard !currentModifiers.isEmpty else {
+              return .none
+            }
+            state.$hexSettings.withLock {
+              $0.selectTextHotkey = HotKey(key: key, modifiers: currentModifiers.erasingSides())
+            }
+            state.$isSettingSelectTextHotkey.withLock { $0 = false }
+            state.currentSelectTextModifiers = []
+          }
+          return .none
+        }
+
         // Handle main recording hotkey setting
         guard state.isSettingHotKey else { return .none }
 

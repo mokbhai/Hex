@@ -9,11 +9,18 @@ public enum RecordingAudioBehavior: String, Codable, CaseIterable, Equatable, Se
 /// User-configurable settings saved to disk.
 public struct HexSettings: Codable, Equatable, Sendable {
 	public static let defaultPasteLastTranscriptHotkey = HotKey(key: .v, modifiers: [.option, .shift])
+	public static let defaultSelectTextHotkey = HotKey(key: .f1, modifiers: [.control])
 	public static let baseSoundEffectsVolume: Double = HexCoreConstants.baseSoundEffectsVolume
 
 	public static var defaultPasteLastTranscriptHotkeyDescription: String {
 		let modifiers = defaultPasteLastTranscriptHotkey.modifiers.sorted.map { $0.stringValue }.joined()
 		let key = defaultPasteLastTranscriptHotkey.key?.toString ?? ""
+		return modifiers + key
+	}
+
+	public static var defaultSelectTextHotkeyDescription: String {
+		let modifiers = defaultSelectTextHotkey.modifiers.sorted.map { $0.stringValue }.joined()
+		let key = defaultSelectTextHotkey.key?.toString ?? ""
 		return modifiers + key
 	}
 
@@ -34,6 +41,7 @@ public struct HexSettings: Codable, Equatable, Sendable {
 	public var saveTranscriptionHistory: Bool
 	public var maxHistoryEntries: Int?
 	public var pasteLastTranscriptHotkey: HotKey?
+	public var selectTextHotkey: HotKey?
 	public var hasCompletedModelBootstrap: Bool
 	public var hasCompletedStorageMigration: Bool
 	public var preferredLLMProviderID: String?
@@ -57,6 +65,7 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		saveTranscriptionHistory: Bool = true,
 		maxHistoryEntries: Int? = nil,
 		pasteLastTranscriptHotkey: HotKey? = HexSettings.defaultPasteLastTranscriptHotkey,
+		selectTextHotkey: HotKey? = HexSettings.defaultSelectTextHotkey,
 		hasCompletedModelBootstrap: Bool = false,
 		hasCompletedStorageMigration: Bool = false,
 		preferredLLMProviderID: String? = nil,
@@ -79,6 +88,7 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		self.saveTranscriptionHistory = saveTranscriptionHistory
 		self.maxHistoryEntries = maxHistoryEntries
 		self.pasteLastTranscriptHotkey = pasteLastTranscriptHotkey
+		self.selectTextHotkey = selectTextHotkey
 		self.hasCompletedModelBootstrap = hasCompletedModelBootstrap
 		self.hasCompletedStorageMigration = hasCompletedStorageMigration
 		self.preferredLLMProviderID = preferredLLMProviderID
@@ -122,6 +132,7 @@ private enum HexSettingKey: String, CodingKey, CaseIterable {
 	case saveTranscriptionHistory
 	case maxHistoryEntries
 	case pasteLastTranscriptHotkey
+	case selectTextHotkey
 	case hasCompletedModelBootstrap
 	case hasCompletedStorageMigration
 	case preferredLLMProviderID
@@ -240,6 +251,14 @@ private enum HexSettingsSchema {
 			.pasteLastTranscriptHotkey,
 			keyPath: \.pasteLastTranscriptHotkey,
 			default: defaults.pasteLastTranscriptHotkey,
+			encode: { container, key, value in
+				try container.encodeIfPresent(value, forKey: key)
+			}
+		).eraseToAny(),
+		SettingsField(
+			.selectTextHotkey,
+			keyPath: \.selectTextHotkey,
+			default: defaults.selectTextHotkey,
 			encode: { container, key, value in
 				try container.encodeIfPresent(value, forKey: key)
 			}

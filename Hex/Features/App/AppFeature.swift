@@ -46,6 +46,7 @@ struct AppFeature {
     case setActiveTab(ActiveTab)
     case task
     case pasteLastTranscript
+    case selectTextHotkeyPressed
 
     // Permission actions
     case checkPermissions
@@ -62,6 +63,9 @@ struct AppFeature {
   @Dependency(\.transcription) var transcription
   @Dependency(\.permissions) var permissions
   @Dependency(\.hexToolServer) var hexToolServer
+  @Dependency(\.soundEffects) var soundEffects
+
+  private let pasteboardClientLive = PasteboardClientLive()
 
   var body: some ReducerOf<Self> {
     BindingReducer()
@@ -90,6 +94,7 @@ struct AppFeature {
       case .task:
         return .merge(
           startPasteLastTranscriptMonitoring(),
+          startSelectTextHotkeyMonitoring(),
           ensureSelectedModelReadiness(),
           startPermissionMonitoring(),
           prewarmToolServer()
@@ -102,6 +107,18 @@ struct AppFeature {
         }
         return .run { _ in
           await pasteboard.paste(lastTranscript)
+        }
+
+      case .selectTextHotkeyPressed:
+        return .run { send in
+          let success = await pasteboardClientLive.insertTextWithFallbacks("Hello world")
+          if success {
+            await soundEffects.play(.pasteTranscript)
+            HexLog.pasteboard.info("Successfully replaced selected text")
+          } else {
+            await soundEffects.play(.cancel)
+            HexLog.pasteboard.warning("All text insertion methods failed")
+          }
         }
         
       case .transcription:
@@ -197,6 +214,46 @@ struct AppFeature {
         // Trigger paste action - use MainActor to avoid escaping send
         MainActor.assumeIsolated {
           send(.pasteLastTranscript)
+        }
+        return true // Intercept the key event
+      }
+
+      defer { token.cancel() }
+
+      await withTaskCancellationHandler {
+        do {
+          try await Task.sleep(nanoseconds: .max)
+        } catch {
+          // Expected on cancellation
+        }
+      } onCancel: {
+        token.cancel()
+      }
+    }
+  }
+
+  private func startSelectTextHotkeyMonitoring() -> Effect<Action> {
+    .run { send in
+      @Shared(.isSettingSelectTextHotkey) var isSettingSelectTextHotkey: Bool
+      @Shared(.hexSettings) var hexSettings: HexSettings
+
+      let token = keyEventMonitor.handleKeyEvent { keyEvent in
+        // Skip if user is setting a hotkey
+        if isSettingSelectTextHotkey {
+          return false
+        }
+
+        // Check if this matches the select text hotkey
+        guard let selectHotkey = hexSettings.selectTextHotkey,
+              let key = keyEvent.key,
+              key == selectHotkey.key,
+              keyEvent.modifiers.matchesExactly(selectHotkey.modifiers) else {
+          return false
+        }
+
+        // Trigger select text action - use MainActor to avoid escaping send
+        MainActor.assumeIsolated {
+          send(.selectTextHotkeyPressed)
         }
         return true // Intercept the key event
       }
