@@ -18,3 +18,5 @@ FluidAudio/
 node_modules/
 .npm-cache/
 .tmp/
+.kilocode/mcp.json
+the page AIN instrument is not visible.

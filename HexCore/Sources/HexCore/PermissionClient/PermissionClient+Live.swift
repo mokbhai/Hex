@@ -3,8 +3,6 @@ import AVFoundation
 import CoreGraphics
 import Dependencies
 import Foundation
-import IOKit
-import IOKit.hidsystem
 
 private let logger = HexLog.permissions
 
@@ -14,13 +12,10 @@ extension PermissionClient: DependencyKey {
     return Self(
       microphoneStatus: { await live.microphoneStatus() },
       accessibilityStatus: { live.accessibilityStatus() },
-      inputMonitoringStatus: { live.inputMonitoringStatus() },
       requestMicrophone: { await live.requestMicrophone() },
       requestAccessibility: { await live.requestAccessibility() },
-      requestInputMonitoring: { await live.requestInputMonitoring() },
       openMicrophoneSettings: { await live.openMicrophoneSettings() },
       openAccessibilitySettings: { await live.openAccessibilitySettings() },
-      openInputMonitoringSettings: { await live.openInputMonitoringSettings() },
       observeAppActivation: { live.observeAppActivation() }
     )
   }
@@ -116,13 +111,6 @@ actor PermissionClientLive {
     return result
   }
 
-  nonisolated func inputMonitoringStatus() -> PermissionStatus {
-    let access = IOHIDCheckAccess(kIOHIDRequestTypeListenEvent)
-    let result = mapIOHIDAccess(access)
-    logger.info("Input monitoring status: \(String(describing: result)) (IOHIDAccess: \(String(describing: access)))")
-    return result
-  }
-
   func requestAccessibility() async {
     logger.info("Requesting accessibility permission...")
     // First, trigger the system prompt (on main actor for safety)
@@ -135,25 +123,6 @@ actor PermissionClientLive {
     await openAccessibilitySettings()
   }
 
-  func requestInputMonitoring() async -> Bool {
-    logger.info("Requesting input monitoring permission...")
-    let granted = await MainActor.run {
-      if CGPreflightListenEventAccess() {
-        return true
-      }
-      return CGRequestListenEventAccess()
-    }
-
-    if !granted {
-      logger.info("Input monitoring not granted, opening Settings...")
-      await openInputMonitoringSettings()
-    } else {
-      logger.info("Input monitoring permission granted: \(granted)")
-    }
-
-    return granted
-  }
-
   func openAccessibilitySettings() async {
     logger.info("Opening accessibility settings in System Preferences...")
     await MainActor.run {
@@ -163,29 +132,9 @@ actor PermissionClientLive {
     }
   }
 
-  func openInputMonitoringSettings() async {
-    logger.info("Opening input monitoring settings in System Preferences...")
-    await MainActor.run {
-      _ = NSWorkspace.shared.open(
-        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent")!
-      )
-    }
-  }
-
   // MARK: - Reactive Monitoring
 
   nonisolated func observeAppActivation() -> AsyncStream<AppActivation> {
     activationStream
-  }
-
-  private nonisolated func mapIOHIDAccess(_ access: IOHIDAccessType) -> PermissionStatus {
-    switch access {
-    case kIOHIDAccessTypeGranted:
-      return .granted
-    case kIOHIDAccessTypeDenied:
-      return .denied
-    default:
-      return .notDetermined
-    }
   }
 }

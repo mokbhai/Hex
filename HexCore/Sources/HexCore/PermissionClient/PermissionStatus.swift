@@ -8,4 +8,7 @@ public enum PermissionStatus: Equatable, Codable, Sendable {
 
   /// Permission has been denied or restricted by the user
   case denied
+
+  /// Permission is not required for this functionality
+  case notRequired
 }

@@ -8,7 +8,6 @@ struct SettingsView: View {
 	@Bindable var store: StoreOf<SettingsFeature>
 	let microphonePermission: PermissionStatus
 	let accessibilityPermission: PermissionStatus
-	let inputMonitoringPermission: PermissionStatus
 	let allowsLLMFeatures: Bool
   
 	var body: some View {
@@ -16,8 +15,7 @@ struct SettingsView: View {
 			PermissionsSectionView(
 				store: store,
 				microphonePermission: microphonePermission,
-				accessibilityPermission: accessibilityPermission,
-				inputMonitoringPermission: inputMonitoringPermission
+				accessibilityPermission: accessibilityPermission
 			)
 
 			ModelSectionView(store: store)

@@ -7,8 +7,6 @@ import Dependencies
 import DependenciesMacros
 import Foundation
 import HexCore
-import IOKit
-import IOKit.hidsystem
 import Sauce
 
 private let logger = HexLog.keyEvent
@@ -98,7 +96,6 @@ class KeyEventMonitorClientLive {
   private var isMonitoring = false
   private var wantsMonitoring = false
   private var accessibilityTrusted = false
-  private var inputMonitoringTrusted = false
   private var trustMonitorTask: Task<Void, Never>?
   private var isFnPressed = false
   private var hasPromptedForAccessibilityTrust = false
@@ -115,7 +112,7 @@ class KeyEventMonitorClientLive {
   }
 
   private var hasRequiredPermissions: Bool {
-    queue.sync { accessibilityTrusted && inputMonitoringTrusted }
+    queue.sync { accessibilityTrusted }
   }
 
   private var hasHandlers: Bool {
@@ -132,7 +129,6 @@ class KeyEventMonitorClientLive {
     queue.sync {
       wantsMonitoring
         && accessibilityTrusted
-        && inputMonitoringTrusted
         && !(continuations.isEmpty && inputContinuations.isEmpty)
     }
   }
@@ -258,50 +254,37 @@ class KeyEventMonitorClientLive {
   // no separate helper; handled inline above
 
   private func watchPermissions() async {
-    var last = (
-      accessibility: currentAccessibilityTrust(),
-      input: currentInputMonitoringTrust()
-    )
-    await handlePermissionChange(accessibility: last.accessibility, input: last.input, reason: "initial")
+    var last = currentAccessibilityTrust()
+    await handlePermissionChange(accessibility: last, reason: "initial")
 
     while !Task.isCancelled {
       try? await Task.sleep(nanoseconds: trustCheckIntervalNanoseconds)
-      let current = (
-        accessibility: currentAccessibilityTrust(),
-        input: currentInputMonitoringTrust()
-      )
+      let current = currentAccessibilityTrust()
 
-      if current.accessibility != last.accessibility || current.input != last.input {
-        let combinedBefore = last.accessibility && last.input
-        let combinedAfter = current.accessibility && current.input
+      if current != last {
         let reason: String
-        if combinedAfter && !combinedBefore {
-          reason = "regained"
-        } else if !combinedAfter && combinedBefore {
+        if current && !last {
+          reason = "granted"
+        } else if !current && last {
           reason = "revoked"
         } else {
           reason = "updated"
         }
-        await handlePermissionChange(accessibility: current.accessibility, input: current.input, reason: reason)
+        await handlePermissionChange(accessibility: current, reason: reason)
         last = current
-      } else if current.accessibility && current.input {
+      } else if current {
         await ensureTapIsRunning()
       }
     }
   }
 
-  private func handlePermissionChange(accessibility: Bool, input: Bool, reason: String) async {
-    setPermissionFlags(accessibility: accessibility, input: input)
-    logger.notice("Permission update: accessibility=\(accessibility), inputMonitoring=\(input), reason=\(reason)")
-    if accessibility && input {
-      logger.notice("Keyboard monitoring permissions granted (\(reason)).")
+  private func handlePermissionChange(accessibility: Bool, reason: String) async {
+    setPermissionFlags(accessibility: accessibility)
+    logger.notice("Permission update: accessibility=\(accessibility), reason=\(reason)")
+    if accessibility {
+      logger.notice("Keyboard monitoring permission granted (\(reason)).")
     } else {
-      if !accessibility {
-        logger.error("Accessibility permission missing (\(reason)); suspending tap.")
-      }
-      if !input {
-        logger.error("Input Monitoring permission missing (\(reason)); waiting for approval before restarting hotkeys.")
-      }
+      logger.error("Accessibility permission missing (\(reason)); suspending tap.")
     }
     await refreshMonitoringState(reason: "trust_\(reason)")
   }
@@ -320,18 +303,16 @@ class KeyEventMonitorClientLive {
     }
   }
 
-  private func setPermissionFlags(accessibility: Bool, input: Bool) {
+  private func setPermissionFlags(accessibility: Bool) {
     queue.async(flags: .barrier) { [weak self] in
       self?.accessibilityTrusted = accessibility
-      self?.inputMonitoringTrusted = input
     }
-    recordSharedPermissionState(accessibility: accessibility, input: input)
+    recordSharedPermissionState(accessibility: accessibility)
   }
 
-  private func recordSharedPermissionState(accessibility: Bool, input: Bool) {
+  private func recordSharedPermissionState(accessibility: Bool) {
     $hotkeyPermissionState.withLock {
       $0.accessibility = accessibility ? .granted : .denied
-      $0.inputMonitoring = input ? .granted : .denied
       $0.lastUpdated = Date()
     }
   }
@@ -354,15 +335,9 @@ class KeyEventMonitorClientLive {
     guard hasHandlers else { return }
 
     let accessibilityTrusted = currentAccessibilityTrust()
-    let inputMonitoringTrusted = currentInputMonitoringTrust()
-    setPermissionFlags(accessibility: accessibilityTrusted, input: inputMonitoringTrusted)
+    setPermissionFlags(accessibility: accessibilityTrusted)
     guard accessibilityTrusted else {
       logger.error("Cannot start key event monitoring (reason: \(reason)); accessibility permission is not granted.")
-      return
-    }
-
-    guard inputMonitoringTrusted else {
-      logger.error("Input Monitoring permission missing; cannot start key event monitoring (reason: \(reason)).")
       return
     }
 
@@ -486,39 +461,32 @@ class KeyEventMonitorClientLive {
 }
 
 extension KeyEventMonitorClientLive {
-  private func updateFnStateIfNeeded(type: CGEventType, cgEvent: CGEvent) {
-    guard type == .flagsChanged else { return }
-    let keyCode = Int(cgEvent.getIntegerValueField(.keyboardEventKeycode))
-    guard keyCode == kVK_Function else { return }
-    isFnPressed = cgEvent.flags.contains(.maskSecondaryFn)
-  }
-
-  private func refreshTrustedFlag(promptIfUntrusted: Bool) {
-    var accessibilityTrusted = currentAccessibilityTrust()
-    if !accessibilityTrusted && promptIfUntrusted && !hasPromptedForAccessibilityTrust {
-      accessibilityTrusted = requestAccessibilityTrustPrompt()
-      hasPromptedForAccessibilityTrust = true
-      logger.notice("Prompted for accessibility trust")
+    private func updateFnStateIfNeeded(type: CGEventType, cgEvent: CGEvent) {
+        guard type == .flagsChanged else { return }
+        let keyCode = Int(cgEvent.getIntegerValueField(.keyboardEventKeycode))
+        guard keyCode == kVK_Function else { return }
+        isFnPressed = cgEvent.flags.contains(.maskSecondaryFn)
     }
-
-    let inputMonitoringTrusted = currentInputMonitoringTrust()
-    setPermissionFlags(accessibility: accessibilityTrusted, input: inputMonitoringTrusted)
-  }
-
-  private func currentAccessibilityTrust() -> Bool {
-    let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-    return AXIsProcessTrustedWithOptions([promptKey: false] as CFDictionary)
-  }
-
-  private func requestAccessibilityTrustPrompt() -> Bool {
-    let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-    return AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
-  }
-
-  private func currentInputMonitoringTrust() -> Bool {
-    IOHIDCheckAccess(kIOHIDRequestTypeListenEvent) == kIOHIDAccessTypeGranted
-  }
-
-  // Intentionally no request helper: creating the event tap prompts macOS 15+ for Input Monitoring
-  // the same way older versions did, while we still track status for UI.
+    
+    private func refreshTrustedFlag(promptIfUntrusted: Bool) {
+        var accessibilityTrusted = currentAccessibilityTrust()
+        if !accessibilityTrusted && promptIfUntrusted && !hasPromptedForAccessibilityTrust {
+            accessibilityTrusted = requestAccessibilityTrustPrompt()
+            hasPromptedForAccessibilityTrust = true
+            logger.notice("Prompted for accessibility trust")
+        }
+        
+        setPermissionFlags(accessibility: accessibilityTrusted)
+    }
+    
+    private func currentAccessibilityTrust() -> Bool {
+        let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        return AXIsProcessTrustedWithOptions([promptKey: false] as CFDictionary)
+    }
+    
+    private func requestAccessibilityTrustPrompt() -> Bool {
+        let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        return AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
+    }
+    
 }

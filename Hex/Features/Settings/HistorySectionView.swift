@@ -54,7 +54,6 @@ struct HistorySectionView: View {
 				}
 
 				PasteLastTranscriptHotkeyRow(store: store)
-				SelectTextHotkeyRow(store: store)
 			}
 		} header: {
 			Text("History")
@@ -102,6 +101,7 @@ private struct PasteLastTranscriptHotkeyRow: View {
 							.font(.caption)
 							.foregroundStyle(.secondary)
 					}
+					
 				}
 				.contentShape(Rectangle())
 				.onTapGesture {
@@ -129,62 +129,3 @@ private struct PasteLastTranscriptHotkeyRow: View {
 	}
 }
 
-private struct SelectTextHotkeyRow: View {
-	@ObserveInjection var inject
-	@Bindable var store: StoreOf<SettingsFeature>
-
-	var body: some View {
-		let selectHotkey = store.hexSettings.selectTextHotkey
-
-		VStack(alignment: .leading, spacing: 12) {
-			Label {
-				VStack(alignment: .leading, spacing: 2) {
-					Text("Select Text Hotkey")
-						.font(.subheadline.weight(.semibold))
-					Text("Assign a shortcut to replace selected text with a preset message.")
-						.font(.caption)
-						.foregroundColor(.secondary)
-				}
-			} icon: {
-				Image(systemName: "text.cursor")
-			}
-
-			let key = store.isSettingSelectTextHotkey ? nil : selectHotkey?.key
-			let modifiers = store.isSettingSelectTextHotkey ? store.currentSelectTextModifiers : (selectHotkey?.modifiers ?? .init(modifiers: []))
-
-			HStack {
-				Spacer()
-				ZStack {
-					HotKeyView(modifiers: modifiers, key: key, isActive: store.isSettingSelectTextHotkey)
-
-					if !store.isSettingSelectTextHotkey, selectHotkey == nil {
-						Text("Not set")
-							.font(.caption)
-							.foregroundStyle(.secondary)
-					}
-				}
-				.contentShape(Rectangle())
-				.onTapGesture {
-					store.send(.startSettingSelectTextHotkey)
-				}
-				Spacer()
-			}
-
-			if store.isSettingSelectTextHotkey {
-				Text("Use at least one modifier (⌘, ⌥, ⇧, ⌃) plus a key.")
-					.font(.caption)
-					.foregroundStyle(.secondary)
-			} else if selectHotkey != nil {
-				Button {
-					store.send(.clearSelectTextHotkey)
-				} label: {
-					Label("Clear shortcut", systemImage: "xmark.circle")
-				}
-				.buttonStyle(.borderless)
-				.font(.caption)
-				.foregroundStyle(.secondary)
-			}
-		}
-		.enableInjection()
-	}
-}

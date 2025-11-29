@@ -86,6 +86,9 @@
     "Advanced" : {
 
     },
+    "AI Enhancements" : {
+
+    },
     "Applies to first matching app (no filters)" : {
 
     },
@@ -471,6 +474,9 @@
     "Modifier side" : {
 
     },
+    "More AI-powered features coming soon." : {
+
+    },
     "Mute Volume" : {
 
     },
@@ -828,6 +834,9 @@
 
     },
     "Volume" : {
+
+    },
+    "When activated, this hotkey will replace the currently selected text with \"Hello world\"." : {
 
     },
     "When disabled, transcriptions will not be saved and audio files will be deleted immediately after transcription." : {

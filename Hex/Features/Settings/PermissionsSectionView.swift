@@ -8,7 +8,6 @@ struct PermissionsSectionView: View {
 	@Bindable var store: StoreOf<SettingsFeature>
 	let microphonePermission: PermissionStatus
 	let accessibilityPermission: PermissionStatus
-	let inputMonitoringPermission: PermissionStatus
 
 	var body: some View {
 		Section {
@@ -25,36 +24,11 @@ struct PermissionsSectionView: View {
 			permissionCard(
 				title: "Accessibility",
 				icon: "accessibility",
-				status: combinedAccessibilityStatus,
+				status: accessibilityPermission,
 				action: {
 					store.send(.requestAccessibility)
-					store.send(.requestInputMonitoring)
 				}
 			)
-		}
-
-		if store.hotkeyPermissionState.inputMonitoring != .granted {
-			VStack(alignment: .leading, spacing: 6) {
-				Label {
-					Text("Input Monitoring is required so Hex can listen for your hotkey.")
-						.font(.callout)
-						.foregroundStyle(.primary)
-				} icon: {
-					Image(systemName: "exclamationmark.triangle.fill")
-						.foregroundStyle(.yellow)
-				}
-
-				Button {
-					store.send(.requestInputMonitoring)
-				} label: {
-					Text("Open Input Monitoring Settings")
-				}
-				.buttonStyle(.borderedProminent)
-				.controlSize(.small)
-			}
-			.padding(12)
-			.background(Color(nsColor: .controlBackgroundColor))
-			.clipShape(RoundedRectangle(cornerRadius: 10))
 		}
 
 		} header: {
@@ -95,6 +69,10 @@ struct PermissionsSectionView: View {
 				}
 				.buttonStyle(.bordered)
 				.controlSize(.small)
+			case .notRequired:
+				Image(systemName: "minus.circle.fill")
+					.foregroundStyle(.gray)
+					.font(.body)
 			}
 		}
 		.padding(.horizontal, 12)
@@ -102,15 +80,5 @@ struct PermissionsSectionView: View {
 		.frame(maxWidth: .infinity)
 		.background(Color(nsColor: .controlBackgroundColor))
 		.clipShape(RoundedRectangle(cornerRadius: 8))
-	}
-
-	private var combinedAccessibilityStatus: PermissionStatus {
-		if accessibilityPermission == .granted && inputMonitoringPermission == .granted {
-			return .granted
-		}
-		if accessibilityPermission == .denied || inputMonitoringPermission == .denied {
-			return .denied
-		}
-		return .notDetermined
 	}
 }

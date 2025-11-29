@@ -17,6 +17,7 @@ struct AppFeature {
     case settings
     case transformations
     case history
+    case aiEnhancements
     case about
   }
 
@@ -26,16 +27,16 @@ struct AppFeature {
 		var settings: SettingsFeature.State = .init()
 		var history: HistoryFeature.State = .init()
 		var textTransformations: TextTransformationFeature.State = .init()
+		var aiEnhancements: AIEnhancementsFeature.State = .init()
 		var activeTab: ActiveTab = .settings
 		var allowsLLMFeatures: Bool = DeveloperAccess.allowsLLMFeatures
 		@Shared(.hexSettings) var hexSettings: HexSettings
 		@Shared(.modelBootstrapState) var modelBootstrapState: ModelBootstrapState
 
-    // Permission state
-    var microphonePermission: PermissionStatus = .notDetermined
-    var accessibilityPermission: PermissionStatus = .notDetermined
-    var inputMonitoringPermission: PermissionStatus = .notDetermined
-  }
+	   // Permission state
+	   var microphonePermission: PermissionStatus = .notDetermined
+	   var accessibilityPermission: PermissionStatus = .notDetermined
+	}
 
   enum Action: BindableAction {
     case binding(BindingAction<State>)
@@ -43,6 +44,7 @@ struct AppFeature {
     case settings(SettingsFeature.Action)
     case history(HistoryFeature.Action)
     case textTransformations(TextTransformationFeature.Action)
+    case aiEnhancements(AIEnhancementsFeature.Action)
     case setActiveTab(ActiveTab)
     case task
     case pasteLastTranscript
@@ -50,11 +52,10 @@ struct AppFeature {
 
     // Permission actions
     case checkPermissions
-    case permissionsUpdated(mic: PermissionStatus, acc: PermissionStatus, input: PermissionStatus)
+    case permissionsUpdated(mic: PermissionStatus, acc: PermissionStatus)
     case appActivated
     case requestMicrophone
     case requestAccessibility
-    case requestInputMonitoring
     case modelStatusEvaluated(Bool)
   }
 
@@ -86,6 +87,10 @@ struct AppFeature {
       TextTransformationFeature()
     }
 
+    Scope(state: \.aiEnhancements, action: \.aiEnhancements) {
+      AIEnhancementsFeature()
+    }
+
     Reduce { state, action in
       switch action {
       case .binding:
@@ -113,10 +118,10 @@ struct AppFeature {
         return .run { send in
           let success = await pasteboardClientLive.insertTextWithFallbacks("Hello world")
           if success {
-            await soundEffects.play(.pasteTranscript)
+            soundEffects.play(.pasteTranscript)
             HexLog.pasteboard.info("Successfully replaced selected text")
           } else {
-            await soundEffects.play(.cancel)
+            soundEffects.play(.cancel)
             HexLog.pasteboard.warning("All text insertion methods failed")
           }
         }
@@ -128,6 +133,9 @@ struct AppFeature {
         return .none
 
       case .textTransformations:
+        return .none
+
+      case .aiEnhancements:
         return .none
 
       case .history(.navigateToSettings):
@@ -147,14 +155,12 @@ struct AppFeature {
         return .run { send in
           async let mic = permissions.microphoneStatus()
           async let acc = permissions.accessibilityStatus()
-          async let input = permissions.inputMonitoringStatus()
-          await send(.permissionsUpdated(mic: mic, acc: acc, input: input))
+          await send(.permissionsUpdated(mic: mic, acc: acc))
         }
 
-      case let .permissionsUpdated(mic, acc, input):
+      case let .permissionsUpdated(mic, acc):
         state.microphonePermission = mic
         state.accessibilityPermission = acc
-        state.inputMonitoringPermission = input
         return .none
 
       case .appActivated:
@@ -177,15 +183,7 @@ struct AppFeature {
           }
         }
 
-      case .requestInputMonitoring:
-        return .run { send in
-          _ = await permissions.requestInputMonitoring()
-          for _ in 0..<10 {
-            try? await Task.sleep(for: .seconds(1))
-            await send(.checkPermissions)
-          }
-        }
-
+      
       case .modelStatusEvaluated:
         return .none
       }
@@ -347,6 +345,14 @@ struct AppView: View {
         }
 
         Button {
+          store.send(.setActiveTab(.aiEnhancements))
+        } label: {
+          Label("AI Enhancements", systemImage: "sparkles")
+        }
+        .buttonStyle(.plain)
+        .tag(AppFeature.ActiveTab.aiEnhancements)
+
+        Button {
           store.send(.setActiveTab(.history))
         } label: {
           Label("History", systemImage: "clock")
@@ -369,7 +375,6 @@ struct AppView: View {
           store: store.scope(state: \.settings, action: \.settings),
           microphonePermission: store.microphonePermission,
           accessibilityPermission: store.accessibilityPermission,
-          inputMonitoringPermission: store.inputMonitoringPermission,
           allowsLLMFeatures: store.allowsLLMFeatures
         )
         .navigationTitle("Settings")
@@ -382,11 +387,13 @@ struct AppView: View {
             store: store.scope(state: \.settings, action: \.settings),
             microphonePermission: store.microphonePermission,
             accessibilityPermission: store.accessibilityPermission,
-            inputMonitoringPermission: store.inputMonitoringPermission,
             allowsLLMFeatures: store.allowsLLMFeatures
           )
           .navigationTitle("Settings")
         }
+      case .aiEnhancements:
+        AIEnhancementsView(store: store.scope(state: \.aiEnhancements, action: \.aiEnhancements))
+          .navigationTitle("AI Enhancements")
       case .history:
         HistoryView(store: store.scope(state: \.history, action: \.history))
           .navigationTitle("History")
