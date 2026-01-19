@@ -1,0 +1,511 @@
+"""End-to-end tests for Hex voice-to-text application.
+
+This module tests the complete recording and transcription flow:
+- Hotkey press triggers recording
+- Audio is captured
+- Hotkey release stops recording
+- Audio is transcribed
+- Text is pasted to clipboard
+- History is saved
+
+These tests use mocking for external dependencies (Ollama, audio devices) to ensure
+tests can run in any environment without requiring:
+- Ollama server running
+- Physical microphone
+- GUI interaction
+
+For manual testing, see the verification instructions at the end of this file.
+"""
+
+# NOTE: This file requires dependencies to be installed.
+# To install: pip install -e .
+# To run tests: pytest tests/test_e2e.py -v
+
+import sys
+sys.path.insert(0, 'src')
+
+# Import all dependencies - will fail if not installed, but that's expected
+from datetime import datetime
+import asyncio
+
+try:
+    from unittest.mock import AsyncMock, MagicMock
+    import pytest
+    from hex.clients.clipboard import ClipboardClient
+    from hex.clients.recording import RecordingClient
+    from hex.clients.sound_effects import SoundEffectsClient
+    from hex.clients.transcript_persistence import TranscriptPersistenceClient
+    from hex.clients.transcription import TranscriptionClient
+    from hex.models.hotkey import HotKey, Modifier, Modifiers, Key
+    from hex.models.key_event import KeyEvent
+    from hex.models.settings import HexSettings
+    from hex.models.transcription import Transcript
+    from hex.models.word_processing import WordRemoval, WordRemapping
+    from hex.transcription.actions import Action
+    from hex.transcription.feature import TranscriptionFeature
+    from hex.transcription.state import TranscriptionState, Meter
+    from hex.hotkeys.processor import HotKeyProcessor, State, Output
+except ImportError:
+    # Allow file to load for smoke test, but pytest fixtures won't work
+    pytest = None
+
+
+# Only define pytest fixtures if pytest is available
+if pytest is not None:
+
+
+    @pytest.fixture
+    def mock_settings():
+    """Provide test settings."""
+    return HexSettings(
+        hotkey=HotKey(key=None, modifiers=Modifiers.from_list([Modifier.OPTION])),
+        soundEffectsEnabled=True,
+        copyToClipboard=True,
+        saveTranscriptionHistory=True,
+        wordRemovalsEnabled=True,
+        wordRemovals=[
+            WordRemoval(pattern="um+"),
+            WordRemoval(pattern="uh+"),
+        ],
+        wordRemappings=[
+            WordRemapping(match="cnt", replacement="can't"),
+        ],
+    )
+
+
+@pytest.fixture
+def mock_recording_client():
+    """Provide a mocked recording client."""
+    client = AsyncMock(spec=RecordingClient)
+    client.start_recording.return_value = "/tmp/test_recording.wav"
+    client.stop_recording.return_value = "/tmp/test_recording.wav"
+    return client
+
+
+@pytest.fixture
+def mock_transcription_client():
+    """Provide a mocked transcription client."""
+    client = AsyncMock(spec=TranscriptionClient)
+    # Simulate successful transcription
+    client.transcribe.return_value = "hello world this is a test"
+    client.is_model_downloaded.return_value = True
+    return client
+
+
+@pytest.fixture
+def mock_clipboard_client():
+    """Provide a mocked clipboard client."""
+    client = AsyncMock(spec=ClipboardClient)
+    client.copy.return_value = None
+    client.paste.return_value = None
+    return client
+
+
+@pytest.fixture
+def mock_sound_effects_client():
+    """Provide a mocked sound effects client."""
+    client = AsyncMock(spec=SoundEffectsClient)
+    client.play.return_value = None
+    return client
+
+
+@pytest.fixture
+def mock_transcript_persistence_client():
+    """Provide a mocked transcript persistence client."""
+    client = AsyncMock(spec=TranscriptPersistenceClient)
+    client.save.return_value = None
+    client.load.return_value = []
+    return client
+
+
+@pytest.fixture
+def transcription_feature(
+    mock_settings,
+    mock_recording_client,
+    mock_transcription_client,
+    mock_clipboard_client,
+    mock_sound_effects_client,
+    mock_transcript_persistence_client,
+):
+    """Provide a TranscriptionFeature with mocked dependencies."""
+    feature = TranscriptionFeature(
+        settings=mock_settings,
+        recording_client=mock_recording_client,
+        clipboard_client=mock_clipboard_client,
+        sound_effects_client=mock_sound_effects_client,
+        transcript_persistence_client=mock_transcript_persistence_client,
+    )
+    # Replace transcription client with mock
+    feature._transcription_client = mock_transcription_client
+    return feature
+
+
+class TestE2EBasicRecordingFlow:
+    """Test the basic recording and transcription flow.
+
+    Flow: Hotkey Press → Recording Starts → Hotkey Release → Recording Stops →
+          Transcription → Text Processing → Paste → History Saved
+    """
+
+    @pytest.mark.asyncio
+    async def test_full_recording_flow(
+        self,
+        transcription_feature,
+        mock_recording_client,
+        mock_transcription_client,
+        mock_clipboard_client,
+        mock_sound_effects_client,
+        mock_transcript_persistence_client,
+    ):
+        """Test complete flow from hotkey press to paste."""
+        # Initial state: not recording, not transcribing
+        assert not transcription_feature.state.is_recording
+        assert not transcription_feature.state.is_transcribing
+        assert not transcription_feature.state.is_prewarming
+
+        # STEP 1: Press hotkey - should start recording
+        transcription_feature.send(Action.HOTKEY_PRESSED)
+        await asyncio.sleep(0.1)  # Give processing loop time to handle action
+
+        # Verify recording started
+        assert transcription_feature.state.is_recording
+        assert not transcription_feature.state.is_transcribing
+        assert transcription_feature.state.recording_start_time is not None
+        mock_recording_client.start_recording.assert_called_once()
+        mock_sound_effects_client.play.assert_called()  # Start recording sound
+
+        # STEP 2: Release hotkey - should stop recording and start transcription
+        mock_sound_effects_client.reset_mock()
+        transcription_feature.send(Action.HOTKEY_RELEASED)
+        await asyncio.sleep(0.1)
+
+        # Verify recording stopped and transcription started
+        assert not transcription_feature.state.is_recording
+        assert transcription_feature.state.is_transcribing
+        mock_recording_client.stop_recording.assert_called_once()
+        mock_sound_effects_client.play.assert_called()  # Stop recording sound
+
+        # STEP 3: Simulate transcription result
+        mock_sound_effects_client.reset_mock()
+        transcription_feature.send(
+            Action.TRANSCRIPTION_RESULT,
+            text="hello world this is a test",
+            audio_path="/tmp/test_recording.wav",
+            duration=3.0,
+        )
+        await asyncio.sleep(0.1)
+
+        # Verify transcription completed
+        assert not transcription_feature.state.is_transcribing
+        assert not transcription_feature.state.error
+
+        # Verify text was processed and pasted
+        mock_transcription_client.transcribe.assert_called_once()
+        mock_clipboard_client.copy.assert_called()
+        mock_clipboard_client.paste.assert_called()
+
+        # Verify sound effect played
+        mock_sound_effects_client.play.assert_called()  # Paste transcript sound
+
+        # Verify saved to history
+        mock_transcript_persistence_client.save.assert_called_once()
+        saved_transcript = mock_transcript_persistence_client.save.call_args[0][0]
+        assert isinstance(saved_transcript, Transcript)
+        assert saved_transcript.text == "hello world this is a test"
+        assert saved_transcript.duration == 3.0
+
+    @pytest.mark.asyncio
+    async def test_flow_with_word_removal(
+        self,
+        transcription_feature,
+        mock_recording_client,
+        mock_transcription_client,
+        mock_clipboard_client,
+    ):
+        """Test that word removal is applied to transcription result."""
+        # Transcription with filler words
+        transcription_with_fillers = "um hello uh world this is a test"
+
+        # Run through recording flow
+        transcription_feature.send(Action.HOTKEY_PRESSED)
+        await asyncio.sleep(0.1)
+
+        transcription_feature.send(Action.HOTKEY_RELEASED)
+        await asyncio.sleep(0.1)
+
+        # Send transcription result with filler words
+        transcription_feature.send(
+            Action.TRANSCRIPTION_RESULT,
+            text=transcription_with_fillers,
+            audio_path="/tmp/test_recording.wav",
+            duration=3.0,
+        )
+        await asyncio.sleep(0.1)
+
+        # Verify word removal was applied (um and uh should be removed)
+        mock_clipboard_client.copy.assert_called_once()
+        copied_text = mock_clipboard_client.copy.call_args[0][0]
+        assert "um" not in copied_text.lower()
+        assert "uh" not in copied_text.lower()
+        # Should be cleaned up
+        assert copied_text == "hello world this is a test"
+
+
+class TestE2ECancellationFlow:
+    """Test recording cancellation via ESC key."""
+
+    @pytest.mark.asyncio
+    async def test_esc_cancels_recording(
+        self,
+        transcription_feature,
+        mock_recording_client,
+        mock_sound_effects_client,
+    ):
+        """Test that ESC cancels active recording."""
+        # Start recording
+        transcription_feature.send(Action.HOTKEY_PRESSED)
+        await asyncio.sleep(0.1)
+        assert transcription_feature.state.is_recording
+
+        # Press ESC
+        transcription_feature.send(Action.CANCEL)
+        await asyncio.sleep(0.1)
+
+        # Verify recording cancelled
+        assert not transcription_feature.state.is_recording
+        mock_recording_client.stop_recording.assert_called_once()
+        mock_sound_effects_client.play.assert_called()  # Cancel sound
+
+
+class TestE2EHotkeyIntegration:
+    """Test hotkey processor integration with transcription feature."""
+
+    def test_hotkey_processor_to_action_mapping(self):
+        """Test that HotKeyProcessor outputs map to correct actions."""
+        # Create hotkey processor
+        hotkey = HotKey(key=None, modifiers=Modifiers.from_list([Modifier.OPTION]))
+        processor = HotKeyProcessor(hotkey=hotkey)
+
+        # Test START_RECORDING output
+        event = KeyEvent(
+            key=None,
+            modifiers=Modifiers.from_list([Modifier.OPTION]),
+            timestamp=datetime.now(),
+        )
+        output = processor.process(event)
+        assert output == Output.START_RECORDING
+
+        # Test STOP_RECORDING output
+        event = KeyEvent(
+            key=None,
+            modifiers=Modifiers.empty(),
+            timestamp=datetime.now(),
+        )
+        output = processor.process(event)
+        assert output == Output.STOP_RECORDING
+
+        # Test CANCEL output
+        processor2 = HotKeyProcessor(hotkey=hotkey)
+        event = KeyEvent(
+            key=None,
+            modifiers=Modifiers.from_list([Modifier.OPTION]),
+            timestamp=datetime.now(),
+        )
+        processor2.process(event)  # Start recording
+        event = KeyEvent(
+            key=Key.ESCAPE,
+            modifiers=Modifiers.empty(),
+            timestamp=datetime.now(),
+        )
+        output = processor2.process(event)
+        assert output == Output.CANCEL
+
+
+# Manual verification instructions
+"""
+## Manual Verification Instructions
+
+These automated tests use mocks to verify the logic flow, but you should also
+perform manual testing to ensure the application works correctly in real scenarios.
+
+### Prerequisites
+1. Install and start Ollama server:
+   ```bash
+   # Download from https://ollama.com
+   ollama serve
+   ollama pull whisper
+   ```
+
+2. Install Hex Python application:
+   ```bash
+   pip install -e .
+   ```
+
+3. Grant macOS Accessibility permission (System Settings → Privacy & Security → Accessibility)
+
+### Test 1: Basic Recording Flow
+**Steps:**
+1. Launch the application: `python -m hex`
+2. Open a text editor (TextEdit, VSCode, etc.)
+3. Press and hold the Option key
+4. Speak clearly: "Hello world this is a test"
+5. Release the Option key
+6. Wait 2-5 seconds for transcription
+
+**Expected Result:**
+- Recording indicator appears when you press Option
+- Sound effect plays when recording starts
+- Sound effect plays when recording stops
+- Text "hello world this is a test" appears in the text editor
+- Text is pasted automatically (no manual Cmd+V needed)
+- Recording indicator disappears
+
+### Test 2: ESC Cancellation
+**Steps:**
+1. Start recording (press Option)
+2. Press ESC key
+
+**Expected Result:**
+- Recording stops immediately
+- Cancel sound effect plays
+- No transcription occurs
+- No text is pasted
+
+### Test 3: Word Removal
+**Steps:**
+1. Open Settings and verify "Word Removals" is enabled
+2. Add pattern "um+" if not present
+3. Start recording and speak: "Um hello world this is a test"
+4. Release hotkey
+
+**Expected Result:**
+- Pasted text should be "hello world this is a test" (without "Um")
+
+### Test 4: Word Replacement
+**Steps:**
+1. Open Settings → Word Remappings
+2. Add: Match "cnt" → Replacement "can't"
+3. Start recording and speak: "I cnt believe it"
+4. Release hotkey
+
+**Expected Result:**
+- Pasted text should be "I can't believe it"
+
+### Test 5: History Management
+**Steps:**
+1. Record 3 different transcriptions
+2. Right-click system tray icon → History...
+
+**Expected Result:**
+- History dialog shows all 3 transcriptions
+- Most recent is at the top
+- Each shows timestamp, duration, and text preview
+
+### Test 6: Settings Persistence
+**Steps:**
+1. Open Settings and change hotkey to Cmd+Shift+H
+2. Quit and restart application
+3. Press Cmd+Shift+H
+
+**Expected Result:**
+- Recording starts with new hotkey
+- Hotkey setting persisted across restart
+
+### Test 7: Double-Tap Mode
+**Steps:**
+1. Open Settings → enable "Use double-tap only"
+2. Double-tap Option key quickly
+3. Speak for 3 seconds
+4. Press Option once to stop
+
+**Expected Result:**
+- Recording locks on double-tap (no need to hold)
+- Single press stops recording
+
+### Test 8: Ollama Error Handling
+**Steps:**
+1. Stop Ollama server: `pkill ollama`
+2. Try to start recording
+
+**Expected Result:**
+- Helpful error message appears
+- Error explains Ollama is not running
+- Error includes setup instructions
+"""
+
+
+if __name__ == "__main__":
+    """Run basic verification without pytest."""
+    import sys
+
+    print("Hex Python - End-to-End Test Suite")
+    print("=" * 60)
+    print()
+    print("This test suite verifies the complete recording flow:")
+    print("  1. Hotkey Press → Recording Starts")
+    print("  2. Hotkey Release → Recording Stops")
+    print("  3. Audio → Transcription")
+    print("  4. Text Processing → Paste")
+    print("  5. History Save")
+    print()
+    print("To run automated tests:")
+    print("  pip install pytest pytest-asyncio")
+    print("  pytest tests/test_e2e.py -v")
+    print()
+    print("For manual testing instructions, see the docstring at the end of this file.")
+    print()
+    print("=" * 60)
+    print()
+    print("Note: This file requires dependencies to be installed.")
+    print("      pip install -e .")
+    print()
+
+    # Try to run a simple smoke test
+    try:
+        # Import dependencies locally to handle missing deps gracefully
+        from hex.transcription.feature import TranscriptionFeature
+        from hex.models.settings import HexSettings
+        from hex.transcription.actions import Action
+        print("Running quick smoke test...")
+        print()
+
+        # Test feature creation
+        settings = HexSettings()
+        feature = TranscriptionFeature(settings=settings)
+        print("✓ TranscriptionFeature created")
+
+        # Test state
+        assert not feature.state.is_recording
+        assert not feature.state.is_transcribing
+        print("✓ Initial state correct")
+
+        # Test action sending
+        feature.send(Action.TASK)
+        print("✓ Action dispatch working")
+
+        # Test cleanup
+        feature.stop()
+        print("✓ Feature cleanup successful")
+
+        print()
+        print("=" * 60)
+        print("All smoke tests passed!")
+        print()
+        print("To run full automated test suite, install pytest and run:")
+        print("  pytest tests/test_e2e.py -v")
+        print()
+    except ImportError as e:
+        print(f"⚠ Skipping smoke test - dependencies not installed: {e}")
+        print()
+        print("To run tests, first install dependencies:")
+        print("  pip install -e .")
+        print("  pip install pytest pytest-asyncio")
+        print()
+        print("Then run:")
+        print("  pytest tests/test_e2e.py -v")
+        print()
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
