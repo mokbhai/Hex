@@ -3,13 +3,13 @@
   "spec": "003-migrate-hex-from-swift-to-python-no-more-limited-t",
   "state": "building",
   "subtasks": {
-    "completed": 17,
+    "completed": 21,
     "total": 59,
-    "in_progress": 0,
+    "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Audio Recording Module",
+    "current": "Transcription Client (Ollama Integration)",
     "id": null,
     "total": 5
   },
@@ -18,8 +18,8 @@
     "max": 1
   },
   "session": {
-    "number": 17,
+    "number": 22,
     "started_at": "2026-01-19T10:47:01.077907"
   },
-  "last_update": "2026-01-19T12:15:30.000000"
+  "last_update": "2026-01-19T13:01:42.101455"
 }
