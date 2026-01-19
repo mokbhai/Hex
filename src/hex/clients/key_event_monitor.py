@@ -10,6 +10,7 @@ The client supports:
 - Multiple simultaneous event handlers
 - Thread-safe event delivery
 - Handler cancellation via tokens
+- HotKeyProcessor integration for hotkey detection
 """
 
 import asyncio
@@ -22,8 +23,9 @@ from uuid import uuid4
 from pynput import keyboard, mouse
 from pynput.keyboard import Key, KeyCode
 
-from hex.models.hotkey import Key as HexKey, Modifier, ModifierKind, Modifiers
+from hex.models.hotkey import HotKey, Key as HexKey, Modifier, ModifierKind, Modifiers
 from hex.models.key_event import InputEvent, InputEventType, KeyEvent
+from hex.hotkeys.processor import HotKeyProcessor, Output as ProcessorOutput
 from hex.utils.logging import get_logger
 
 logger = get_logger("keyEvent")
@@ -166,6 +168,57 @@ class KeyEventMonitorClient:
         return KeyEventMonitorToken(
             cancel_handler=lambda: self._remove_input_handler(handler_id)
         )
+
+    def handle_hotkey_processor(
+        self,
+        processor: HotKeyProcessor,
+        output_callback: Callable[[ProcessorOutput], None]
+    ) -> KeyEventMonitorToken:
+        """Register a HotKeyProcessor to process keyboard events.
+
+        This method integrates a HotKeyProcessor with the key event monitor.
+        All keyboard events will be processed through the HotKeyProcessor state
+        machine, and the callback will be invoked with the processor's output
+        (START_RECORDING, STOP_RECORDING, CANCEL, DISCARD) when actions are triggered.
+
+        This is equivalent to the Swift handleKeyEvent() method that integrates
+        with the HotKeyProcessor for hotkey detection.
+
+        Args:
+            processor: A HotKeyProcessor instance configured with the desired hotkey
+            output_callback: A callable that receives ProcessorOutput actions
+
+        Returns:
+            A token that can be used to cancel this processor integration
+
+        Example:
+            >>> from hex.models.hotkey import HotKey, Modifier, Modifiers
+            >>> from hex.hotkeys.processor import HotKeyProcessor
+            >>> processor = HotKeyProcessor(
+            ...     hotkey=HotKey(key=None, modifiers=Modifiers.from_list([Modifier.OPTION]))
+            ... )
+            >>> def on_action(output):
+            ...     print(f"Action: {output.name}")
+            >>> token = client.handle_hotkey_processor(processor, on_action)
+        """
+        # Create a wrapper handler that processes events through the HotKeyProcessor
+        def key_event_handler(event: KeyEvent) -> bool:
+            # Process the key event through the HotKeyProcessor state machine
+            result = processor.process(event)
+
+            # If the processor returned an output, invoke the callback
+            if result is not None:
+                try:
+                    output_callback(result)
+                    logger.debug(f"HotKeyProcessor output: {result.name}")
+                except Exception as e:
+                    logger.error(f"Error in processor output callback: {e}")
+
+            # Never consume the event - let it propagate to other applications
+            return False
+
+        # Register the keyboard event handler
+        return self.handle_key_event(key_event_handler)
 
     def start_monitoring(self) -> None:
         """Start monitoring keyboard and mouse events.
