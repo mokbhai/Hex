@@ -19,6 +19,10 @@ from hex.models.word_processing import (
     WordRemoval,
     WordRemovalApplier,
 )
+from hex.models.transcription import (
+    Transcript,
+    TranscriptionHistory,
+)
 
 __all__ = [
     "Key",
@@ -34,4 +38,6 @@ __all__ = [
     "WordRemappingApplier",
     "WordRemoval",
     "WordRemovalApplier",
+    "Transcript",
+    "TranscriptionHistory",
 ]
