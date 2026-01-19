@@ -27,6 +27,7 @@ from pathlib import Path
 from queue import Empty, Queue
 from typing import Awaitable, Callable, Optional
 
+from hex.clients.recording import RecordingClient
 from hex.models.settings import HexSettings
 from hex.models.transcription import Transcript
 from hex.models.word_processing import WordRemapping, WordRemoval
@@ -65,11 +66,14 @@ class TranscriptionFeature:
     def __init__(
         self,
         settings: Optional[HexSettings] = None,
+        recording_client: Optional[RecordingClient] = None,
     ):
         """Initialize the TranscriptionFeature.
 
         Args:
             settings: User settings. If None, default settings are used.
+            recording_client: Recording client for audio capture. If None, a new
+                client is created with default settings.
 
         The initialization creates a background thread that processes actions
         from the queue. The thread is marked as daemon so it will be killed
@@ -80,6 +84,9 @@ class TranscriptionFeature:
         # Initialize state
         self.state = TranscriptionState()
         self.settings = settings or HexSettings()
+
+        # Initialize clients
+        self._recording_client = recording_client or RecordingClient()
 
         # Action processing
         self._action_queue: Queue[tuple[Action, dict]] = Queue()
@@ -249,15 +256,25 @@ class TranscriptionFeature:
         self.state = replace(self.state, meter=meter)
         self._logger.debug(f"Audio level updated: {meter.averagePower} dB")
 
-    # MARK: - Hotkey Handlers (stubs for now)
+    # MARK: - Hotkey Handlers
 
     async def _handle_hotkey_pressed(self, kwargs: dict) -> None:
         """Handle HOTKEY_PRESSED action.
 
-        This will be implemented in subtask-11-4.
+        If already transcribing, cancel first. Otherwise start recording immediately.
+        We'll decide later (on release) whether to keep or discard the recording.
+
+        This mirrors handleHotKeyPressed from TranscriptionFeature.swift.
         """
         self._logger.debug("Hotkey pressed")
-        # TODO: Implement in subtask-11-4
+
+        # If already transcribing, send cancel first
+        if self.state.is_transcribing:
+            self._logger.info("Canceling active transcription before starting new recording")
+            await self._handle_cancel(kwargs)
+
+        # Always start recording immediately
+        await self._handle_start_recording(kwargs)
 
     async def _handle_hotkey_released(self, kwargs: dict) -> None:
         """Handle HOTKEY_RELEASED action.
@@ -267,15 +284,43 @@ class TranscriptionFeature:
         self._logger.debug("Hotkey released")
         # TODO: Implement in subtask-11-5
 
-    # MARK: - Recording Handlers (stubs for now)
+    # MARK: - Recording Handlers
 
     async def _handle_start_recording(self, kwargs: dict) -> None:
         """Handle START_RECORDING action.
 
-        This will be implemented in subtask-11-4.
+        Starts audio recording if model is ready. Updates state, logs the start time,
+        and initiates audio capture.
+
+        This mirrors handleStartRecording from TranscriptionFeature.swift.
         """
-        self._logger.info("Starting recording")
-        # TODO: Implement in subtask-11-4
+        # TODO: Check model readiness (modelBootstrapState.isModelReady)
+        # For now, we'll assume the model is ready
+
+        # Update state
+        self.state = replace(self.state, is_recording=True)
+        start_time = datetime.now()
+        self.state = replace(self.state, recording_start_time=start_time)
+
+        # TODO: Capture source application info (macOS-specific)
+        # if let activeApp = NSWorkspace.shared.frontmostApplication {
+        #     state.sourceAppBundleID = activeApp.bundleIdentifier
+        #     state.sourceAppName = activeApp.localizedName
+        # }
+
+        # Log recording start with timestamp
+        self._logger.notice(f"Recording started at {start_time.isoformat()}")
+
+        # Start audio recording
+        # TODO: Play sound effect (soundEffect.play(.startRecording))
+        # TODO: Prevent system sleep if setting enabled
+
+        try:
+            await self._recording_client.start_recording()
+            self._logger.info("Recording started successfully")
+        except Exception as e:
+            self._logger.error(f"Failed to start recording: {e}")
+            self.state = replace(self.state, is_recording=False, error=str(e))
 
     async def _handle_stop_recording(self, kwargs: dict) -> None:
         """Handle STOP_RECORDING action.
