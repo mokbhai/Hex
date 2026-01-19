@@ -3,23 +3,23 @@
   "spec": "003-migrate-hex-from-swift-to-python-no-more-limited-t",
   "state": "building",
   "subtasks": {
-    "completed": 26,
+    "completed": 31,
     "total": 59,
-    "in_progress": 0,
+    "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Transcription Client (Ollama Integration)",
+    "current": "Transcription History Persistence",
     "id": null,
-    "total": 5
+    "total": 3
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 27,
-    "started_at": "2026-01-19T13:39:00.000000"
+    "number": 32,
+    "started_at": "2026-01-19T10:47:01.077907"
   },
-  "last_update": "2026-01-19T13:40:00.000000"
+  "last_update": "2026-01-19T14:17:07.015897"
 }
