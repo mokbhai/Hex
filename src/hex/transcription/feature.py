@@ -279,10 +279,15 @@ class TranscriptionFeature:
     async def _handle_hotkey_released(self, kwargs: dict) -> None:
         """Handle HOTKEY_RELEASED action.
 
-        This will be implemented in subtask-11-5.
+        If currently recording, stop recording. Otherwise, do nothing.
+
+        This mirrors handleHotKeyReleased from TranscriptionFeature.swift.
         """
         self._logger.debug("Hotkey released")
-        # TODO: Implement in subtask-11-5
+
+        # Only stop if we're currently recording
+        if self.state.is_recording:
+            await self._handle_stop_recording(kwargs)
 
     # MARK: - Recording Handlers
 
@@ -325,10 +330,39 @@ class TranscriptionFeature:
     async def _handle_stop_recording(self, kwargs: dict) -> None:
         """Handle STOP_RECORDING action.
 
-        This will be implemented in subtask-11-5.
+        Stops audio recording and updates state. Logs the stop time and duration.
+
+        This mirrors handleStopRecording from TranscriptionFeature.swift.
+        The full implementation will include RecordingDecisionEngine logic,
+        but for now we just stop the recording and update state.
         """
-        self._logger.info("Stopping recording")
-        # TODO: Implement in subtask-11-5
+        if not self.state.is_recording:
+            self._logger.warning("stop_recording called while not recording")
+            return
+
+        # Update state
+        self.state = replace(self.state, is_recording=False)
+
+        # Calculate duration
+        stop_time = datetime.now()
+        start_time = self.state.recording_start_time
+        duration = (stop_time - start_time).total_seconds() if start_time else 0.0
+
+        start_stamp = start_time.isoformat() if start_time else "nil"
+        stop_stamp = stop_time.isoformat()
+
+        self._logger.notice(
+            f"Recording stopped duration={duration:.3f}s "
+            f"start={start_stamp} stop={stop_stamp}"
+        )
+
+        # Stop the recording client
+        try:
+            audio_url = await self._recording_client.stop_recording()
+            self._logger.info(f"Recording stopped successfully: {audio_url}")
+        except Exception as e:
+            self._logger.error(f"Failed to stop recording: {e}")
+            self.state = replace(self.state, error=str(e))
 
     # MARK: - Cancel/Discard Handlers (stubs for now)
 
