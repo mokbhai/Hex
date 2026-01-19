@@ -9,6 +9,13 @@ from enum import Enum, auto
 from typing import Optional, Set, List, ClassVar, Any
 import json
 
+# Import PySide6 for Qt key conversion (only when needed)
+try:
+    from PySide6.QtCore import Qt
+    PYSIDE6_AVAILABLE = True
+except ImportError:
+    PYSIDE6_AVAILABLE = False
+
 
 class Key(Enum):
     """Keyboard keys supported by Hex.
@@ -137,6 +144,96 @@ class Key(Enum):
 
         # Default: uppercase the value
         return self.value.upper()
+
+    @classmethod
+    def from_qt_key(cls, qt_key: int) -> Optional["Key"]:
+        """Convert a Qt key code to a Key enum value.
+
+        Args:
+            qt_key: Qt key code (e.g., Qt.Key.Key_A, Qt.Key.Key_0)
+
+        Returns:
+            Corresponding Key enum value, or None if not found
+
+        Examples:
+            >>> if PYSIDE6_AVAILABLE:
+            ...     Key.from_qt_key(Qt.Key.Key_A) == Key.A
+            True
+        """
+        if not PYSIDE6_AVAILABLE:
+            return None
+
+        # Map Qt keys to Key enum values
+        qt_key_map = {
+            Qt.Key.Key_A: cls.A,
+            Qt.Key.Key_B: cls.B,
+            Qt.Key.Key_C: cls.C,
+            Qt.Key.Key_D: cls.D,
+            Qt.Key.Key_E: cls.E,
+            Qt.Key.Key_F: cls.F,
+            Qt.Key.Key_G: cls.G,
+            Qt.Key.Key_H: cls.H,
+            Qt.Key.Key_I: cls.I,
+            Qt.Key.Key_J: cls.J,
+            Qt.Key.Key_K: cls.K,
+            Qt.Key.Key_L: cls.L,
+            Qt.Key.Key_M: cls.M,
+            Qt.Key.Key_N: cls.N,
+            Qt.Key.Key_O: cls.O,
+            Qt.Key.Key_P: cls.P,
+            Qt.Key.Key_Q: cls.Q,
+            Qt.Key.Key_R: cls.R,
+            Qt.Key.Key_S: cls.S,
+            Qt.Key.Key_T: cls.T,
+            Qt.Key.Key_U: cls.U,
+            Qt.Key.Key_V: cls.V,
+            Qt.Key.Key_W: cls.W,
+            Qt.Key.Key_X: cls.X,
+            Qt.Key.Key_Y: cls.Y,
+            Qt.Key.Key_Z: cls.Z,
+            Qt.Key.Key_0: cls.ZERO,
+            Qt.Key.Key_1: cls.ONE,
+            Qt.Key.Key_2: cls.TWO,
+            Qt.Key.Key_3: cls.THREE,
+            Qt.Key.Key_4: cls.FOUR,
+            Qt.Key.Key_5: cls.FIVE,
+            Qt.Key.Key_6: cls.SIX,
+            Qt.Key.Key_7: cls.SEVEN,
+            Qt.Key.Key_8: cls.EIGHT,
+            Qt.Key.Key_9: cls.NINE,
+            Qt.Key.Key_Space: cls.SPACE,
+            Qt.Key.Key_Return: cls.ENTER,
+            Qt.Key.Key_Enter: cls.ENTER,
+            Qt.Key.Key_Tab: cls.TAB,
+            Qt.Key.Key_Escape: cls.ESCAPE,
+            Qt.Key.Key_Backspace: cls.BACKSPACE,
+            Qt.Key.Key_Period: cls.PERIOD,
+            Qt.Key.Key_Comma: cls.COMMA,
+            Qt.Key.Key_Slash: cls.SLASH,
+            Qt.Key.Key_Apostrophe: cls.QUOTE,
+            Qt.Key.Key_QuoteDbl: cls.QUOTE,
+            Qt.Key.Key_Backslash: cls.BACKSLASH,
+            Qt.Key.Key_Semicolon: cls.SEMICOLON,
+            Qt.Key.Key_QuoteLeft: cls.GRAVE,
+            Qt.Key.Key_Left: cls.LEFT_ARROW,
+            Qt.Key.Key_Right: cls.RIGHT_ARROW,
+            Qt.Key.Key_Up: cls.UP_ARROW,
+            Qt.Key.Key_Down: cls.DOWN_ARROW,
+            Qt.Key.Key_F1: cls.F1,
+            Qt.Key.Key_F2: cls.F2,
+            Qt.Key.Key_F3: cls.F3,
+            Qt.Key.Key_F4: cls.F4,
+            Qt.Key.Key_F5: cls.F5,
+            Qt.Key.Key_F6: cls.F6,
+            Qt.Key.Key_F7: cls.F7,
+            Qt.Key.Key_F8: cls.F8,
+            Qt.Key.Key_F9: cls.F9,
+            Qt.Key.Key_F10: cls.F10,
+            Qt.Key.Key_F11: cls.F11,
+            Qt.Key.Key_F12: cls.F12,
+        }
+
+        return qt_key_map.get(qt_key)
 
 
 class ModifierKind(Enum):
