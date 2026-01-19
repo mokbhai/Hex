@@ -108,7 +108,13 @@ class HexApp(QObject):
         """Handle History menu click."""
         logger.info("History requested from tray menu")
         self.history_requested.emit()
-        # TODO: Open history viewer (will be implemented in subtask-12-4)
+
+        # Import here to avoid circular dependencies
+        from hex.gui.history_dialog import HistoryDialog
+
+        # Show history dialog
+        dialog = HistoryDialog()
+        dialog.exec()
 
     @Slot()
     def _on_quit_clicked(self) -> None:
