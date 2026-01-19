@@ -1,0 +1,392 @@
+"""TranscriptionClient for audio transcription using Ollama.
+
+This module provides transcription functionality using the Ollama Python library.
+It mirrors the structure from Hex/Clients/TranscriptionClient.swift in the Swift app,
+but replaces WhisperKit with Ollama for cross-platform compatibility.
+
+The client handles:
+- Ollama server connection management
+- Audio file transcription
+- Model availability checking
+- Audio format preprocessing
+"""
+
+import asyncio
+from dataclasses import dataclass
+from enum import Enum, auto
+from pathlib import Path
+from typing import Optional
+
+import httpx
+
+from hex.utils.logging import get_logger, LogCategory
+
+
+# Module logger
+transcription_logger = get_logger(LogCategory.TRANSCRIPTION)
+models_logger = get_logger(LogCategory.MODELS)
+
+
+class TranscriptionError(Exception):
+    """Base exception for transcription errors."""
+
+    pass
+
+
+class OllamaConnectionError(TranscriptionError):
+    """Raised when Ollama server is not available."""
+
+    pass
+
+
+class ModelNotFoundError(TranscriptionError):
+    """Raised when requested model is not available in Ollama."""
+
+    pass
+
+
+class DecodingOptions(Enum):
+    """Decoding options for transcription.
+
+    Matches DecodingOptions from Swift implementation where applicable.
+    For Ollama, these are more limited than WhisperKit options.
+    """
+
+    DEFAULT = auto()
+    # Note: Ollama uses its own decoding options internally
+    # We keep this enum for API compatibility with Swift version
+
+
+@dataclass
+class TranscriptionProgress:
+    """Progress information for transcription operations.
+
+    Attributes:
+        current: Current progress value (0-100)
+        total: Total progress value (typically 100)
+        message: Optional progress message
+    """
+
+    current: float = 0.0
+    total: float = 100.0
+    message: Optional[str] = None
+
+    @property
+    def fraction_completed(self) -> float:
+        """Return fraction completed (0.0 to 1.0)."""
+        if self.total == 0:
+            return 0.0
+        return self.current / self.total
+
+
+class TranscriptionClient:
+    """Client for audio transcription using Ollama.
+
+    This class provides async transcription functionality using the Ollama server.
+    It handles audio preprocessing, model management, and server connectivity.
+
+    Attributes:
+        ollama_host: Host URL for Ollama server (default: http://localhost:11434)
+        default_model: Default model to use for transcription (default: whisper)
+        timeout: HTTP timeout in seconds (default: 30)
+
+    Example:
+        >>> client = TranscriptionClient()
+        >>> text = await client.transcribe(
+        ...     audio_path="/path/to/audio.wav",
+        ...     model="whisper"
+        ... )
+        >>> print(f"Transcription: {text}")
+    """
+
+    def __init__(
+        self,
+        ollama_host: str = "http://localhost:11434",
+        default_model: str = "whisper",
+        timeout: int = 30,
+    ) -> None:
+        """Initialize the TranscriptionClient.
+
+        Args:
+            ollama_host: Host URL for Ollama server (default: http://localhost:11434)
+            default_model: Default model for transcription (default: whisper)
+            timeout: HTTP timeout in seconds (default: 30)
+        """
+        self.ollama_host = ollama_host
+        self.default_model = default_model
+        self.timeout = timeout
+        self._http_client: Optional[httpx.AsyncClient] = None
+
+    async def transcribe(
+        self,
+        audio_path: str,
+        model: Optional[str] = None,
+        options: DecodingOptions = DecodingOptions.DEFAULT,
+        progress_callback: Optional[callable] = None,
+    ) -> str:
+        """Transcribe an audio file using Ollama.
+
+        Args:
+            audio_path: Path to audio file to transcribe
+            model: Model name to use (default: whisper or client default)
+            options: Decoding options (for API compatibility)
+            progress_callback: Optional callback for progress updates
+
+        Returns:
+            Transcribed text
+
+        Raises:
+            OllamaConnectionError: If Ollama server is not available
+            ModelNotFoundError: If requested model is not available
+            TranscriptionError: For other transcription errors
+
+        Example:
+            >>> text = await client.transcribe(
+            ...     audio_path="/path/to/audio.wav",
+            ...     model="whisper"
+            ... )
+        """
+        model = model or self.default_model
+
+        try:
+            # Check Ollama server connection first
+            await self._check_ollama_server()
+
+            # Check if model is available
+            if not await self.is_model_downloaded(model):
+                raise ModelNotFoundError(
+                    f"Model '{model}' is not available in Ollama. "
+                    f"Please run: ollama pull {model}"
+                )
+
+            # Report initial progress
+            if progress_callback:
+                progress_callback(
+                    TranscriptionProgress(current=0, message="Starting transcription")
+                )
+
+            # Preprocess audio if needed
+            processed_path = await self._preprocess_audio(audio_path)
+
+            # Report preprocessing complete
+            if progress_callback:
+                progress_callback(
+                    TranscriptionProgress(current=50, message="Transcribing audio")
+                )
+
+            # Perform transcription
+            text = await self._transcribe_with_ollama(processed_path, model)
+
+            # Report completion
+            if progress_callback:
+                progress_callback(
+                    TranscriptionProgress(current=100, message="Transcription complete")
+                )
+
+            transcription_logger.info(f"Transcription completed for {audio_path}")
+
+            return text
+
+        except OllamaConnectionError:
+            raise
+        except ModelNotFoundError:
+            raise
+        except Exception as e:
+            transcription_logger.error(f"Transcription failed: {e}")
+            raise TranscriptionError(f"Transcription failed: {e}") from e
+
+    async def is_model_downloaded(self, model_name: str) -> bool:
+        """Check if a model is available in Ollama.
+
+        Args:
+            model_name: Name of the model to check
+
+        Returns:
+            True if model is available, False otherwise
+
+        Example:
+            >>> available = await client.is_model_downloaded("whisper")
+            >>> if available:
+            ...     print("Whisper model is ready")
+        """
+        try:
+            # First ensure server is running
+            await self._check_ollama_server()
+
+            # Get list of available models
+            models = await self._get_available_models()
+
+            # Check if requested model is in the list
+            is_available = any(model_name in model.get("name", "") for model in models)
+
+            models_logger.debug(f"Model {model_name} available: {is_available}")
+
+            return is_available
+
+        except OllamaConnectionError:
+            # Server not running, model not available
+            return False
+        except Exception as e:
+            models_logger.error(f"Error checking model availability: {e}")
+            return False
+
+    async def _check_ollama_server(self) -> bool:
+        """Check if Ollama server is running and accessible.
+
+        Returns:
+            True if server is accessible
+
+        Raises:
+            OllamaConnectionError: If server is not available
+
+        Example:
+            >>> try:
+            ...     await client._check_ollama_server()
+            ...     print("Ollama server is running")
+            ... except OllamaConnectionError:
+            ...     print("Ollama server is not available")
+        """
+        try:
+            # Create HTTP client if needed
+            if self._http_client is None:
+                self._http_client = httpx.AsyncClient(timeout=self.timeout)
+
+            # Try to ping Ollama server
+            response = await self._http_client.get(f"{self.ollama_host}/api/tags")
+
+            if response.status_code == 200:
+                transcription_logger.debug("Ollama server is accessible")
+                return True
+            else:
+                raise OllamaConnectionError(
+                    f"Ollama server returned status {response.status_code}"
+                )
+
+        except httpx.ConnectError as e:
+            raise OllamaConnectionError(
+                "Cannot connect to Ollama server. "
+                "Please ensure Ollama is running (run 'ollama serve' in terminal). "
+                f"Server URL: {self.ollama_host}"
+            ) from e
+        except httpx.TimeoutException:
+            raise OllamaConnectionError(
+                f"Ollama server timed out. Server URL: {self.ollama_host}"
+            )
+        except Exception as e:
+            raise OllamaConnectionError(
+                f"Failed to connect to Ollama server: {e}"
+            ) from e
+
+    async def _get_available_models(self) -> list[dict]:
+        """Get list of available models from Ollama.
+
+        Returns:
+            List of model dictionaries with 'name' and other metadata
+
+        Raises:
+            OllamaConnectionError: If server is not available
+        """
+        try:
+            if self._http_client is None:
+                self._http_client = httpx.AsyncClient(timeout=self.timeout)
+
+            response = await self._http_client.get(f"{self.ollama_host}/api/tags")
+            response.raise_for_status()
+
+            data = response.json()
+            models = data.get("models", [])
+
+            models_logger.debug(f"Found {len(models)} available models")
+
+            return models
+
+        except httpx.HTTPError as e:
+            models_logger.error(f"Failed to get available models: {e}")
+            raise OllamaConnectionError(f"Failed to get models: {e}") from e
+
+    async def _preprocess_audio(self, audio_path: str) -> str:
+        """Preprocess audio file for Ollama transcription.
+
+        Ensures audio is in correct format (16kHz mono WAV) for optimal transcription.
+        If the file is already in correct format, returns the original path.
+
+        Args:
+            audio_path: Path to audio file
+
+        Returns:
+            Path to processed audio file (may be same as input)
+
+        Note:
+            This is a placeholder for subtask-6-4. For now, it just returns
+            the original path. Audio preprocessing will be implemented in a later subtask.
+        """
+        # TODO: Implement audio format conversion in subtask-6-4
+        # For now, just return the original path
+        return audio_path
+
+    async def _transcribe_with_ollama(self, audio_path: str, model: str) -> str:
+        """Perform transcription using Ollama API.
+
+        Args:
+            audio_path: Path to audio file
+            model: Model name to use
+
+        Returns:
+            Transcribed text
+
+        Raises:
+            TranscriptionError: If transcription fails
+        """
+        try:
+            if self._http_client is None:
+                self._http_client = httpx.AsyncClient(timeout=self.timeout)
+
+            # Read audio file
+            audio_path_obj = Path(audio_path)
+            if not audio_path_obj.exists():
+                raise TranscriptionError(f"Audio file not found: {audio_path}")
+
+            # Ollama API expects multipart form data with audio file
+            with open(audio_path, "rb") as audio_file:
+                files = {
+                    "file": (audio_path_obj.name, audio_file, "audio/wav")
+                }
+
+                data = {
+                    "model": model,
+                }
+
+                response = await self._http_client.post(
+                    f"{self.ollama_host}/api/generate",
+                    files=files,
+                    data=data,
+                )
+
+            response.raise_for_status()
+
+            # Parse response
+            result = response.json()
+            text = result.get("response", "").strip()
+
+            if not text:
+                transcription_logger.warning("Empty transcription returned")
+
+            return text
+
+        except httpx.HTTPError as e:
+            transcription_logger.error(f"HTTP error during transcription: {e}")
+            raise TranscriptionError(f"Transcription HTTP error: {e}") from e
+        except Exception as e:
+            transcription_logger.error(f"Error during transcription: {e}")
+            raise TranscriptionError(f"Transcription failed: {e}") from e
+
+    async def cleanup(self) -> None:
+        """Release transcription client resources.
+
+        Should be called on app termination to properly clean up resources.
+        """
+        if self._http_client is not None:
+            await self._http_client.aclose()
+            self._http_client = None
+
+        transcription_logger.info("TranscriptionClient cleaned up")
