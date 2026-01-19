@@ -174,15 +174,22 @@ class KeyEventMonitorClient:
         processor: HotKeyProcessor,
         output_callback: Callable[[ProcessorOutput], None]
     ) -> KeyEventMonitorToken:
-        """Register a HotKeyProcessor to process keyboard events.
+        """Register a HotKeyProcessor to process keyboard and mouse events.
 
         This method integrates a HotKeyProcessor with the key event monitor.
-        All keyboard events will be processed through the HotKeyProcessor state
-        machine, and the callback will be invoked with the processor's output
-        (START_RECORDING, STOP_RECORDING, CANCEL, DISCARD) when actions are triggered.
+        All keyboard events and mouse clicks will be processed through the
+        HotKeyProcessor state machine, and the callback will be invoked with
+        the processor's output (START_RECORDING, STOP_RECORDING, CANCEL, DISCARD)
+        when actions are triggered.
 
         This is equivalent to the Swift handleKeyEvent() method that integrates
         with the HotKeyProcessor for hotkey detection.
+
+        Mouse Click Behavior:
+            Mouse clicks are processed to prevent accidental recordings for modifier-only
+            hotkeys. If a mouse click occurs within the threshold after activating a
+            modifier-only hotkey (e.g., Option+click in Finder), a DISCARD action is
+            emitted to cancel the recording.
 
         Args:
             processor: A HotKeyProcessor instance configured with the desired hotkey
@@ -201,7 +208,7 @@ class KeyEventMonitorClient:
             ...     print(f"Action: {output.name}")
             >>> token = client.handle_hotkey_processor(processor, on_action)
         """
-        # Create a wrapper handler that processes events through the HotKeyProcessor
+        # Create a wrapper handler that processes keyboard events through the HotKeyProcessor
         def key_event_handler(event: KeyEvent) -> bool:
             # Process the key event through the HotKeyProcessor state machine
             result = processor.process(event)
@@ -217,8 +224,34 @@ class KeyEventMonitorClient:
             # Never consume the event - let it propagate to other applications
             return False
 
-        # Register the keyboard event handler
-        return self.handle_key_event(key_event_handler)
+        # Create a wrapper handler that processes mouse clicks for discard logic
+        def input_event_handler(event: InputEvent) -> bool:
+            # Only process mouse clicks
+            if event.is_mouse_click:
+                # Process the mouse click through the HotKeyProcessor for discard detection
+                result = processor.process_mouse_click()
+
+                # If the processor returned an output, invoke the callback
+                if result is not None:
+                    try:
+                        output_callback(result)
+                        logger.debug(f"HotKeyProcessor mouse click output: {result.name}")
+                    except Exception as e:
+                        logger.error(f"Error in processor mouse click callback: {e}")
+
+            # Never consume the event - let it propagate to other applications
+            return False
+
+        # Register both handlers - keyboard for hotkey detection, input for mouse clicks
+        keyboard_token = self.handle_key_event(key_event_handler)
+        input_token = self.handle_input_event(input_event_handler)
+
+        # Return a composite token that cancels both handlers
+        def cancel_both() -> None:
+            keyboard_token.cancel()
+            input_token.cancel()
+
+        return KeyEventMonitorToken(cancel_handler=cancel_both)
 
     def start_monitoring(self) -> None:
         """Start monitoring keyboard and mouse events.
