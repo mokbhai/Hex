@@ -6,5 +6,6 @@ implementation in Hex/Features/Transcription/TranscriptionFeature.swift.
 """
 
 from hex.transcription.state import TranscriptionState, Meter
+from hex.transcription.actions import Action
 
-__all__ = ["TranscriptionState", "Meter"]
+__all__ = ["TranscriptionState", "Meter", "Action"]
