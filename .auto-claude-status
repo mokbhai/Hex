@@ -3,23 +3,23 @@
   "spec": "003-migrate-hex-from-swift-to-python-no-more-limited-t",
   "state": "building",
   "subtasks": {
-    "completed": 41,
+    "completed": 43,
     "total": 59,
     "in_progress": 1,
     "failed": 0
   },
   "phase": {
-    "current": "Main State Machine (TranscriptionFeature)",
+    "current": "GUI (PySide6 System Tray)",
     "id": null,
-    "total": 7
+    "total": 5
   },
   "workers": {
     "active": 0,
     "max": 1
   },
   "session": {
-    "number": 3,
+    "number": 5,
     "started_at": "2026-01-19T23:28:02.229822"
   },
-  "last_update": "2026-01-19T23:38:13.862860"
+  "last_update": "2026-01-19T23:50:45.936023"
 }
