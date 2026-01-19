@@ -29,6 +29,7 @@ dependencies = [
     "ollama>=0.1.0",
     "sounddevice>=0.4.6",
     "numpy>=1.24.0",
+    "scipy>=1.11.0",
     "pynput>=1.7.6",
     "PySide6>=6.6.0",
     "pyperclip>=1.8.0",
