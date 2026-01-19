@@ -23,6 +23,10 @@ from hex.models.transcription import (
     Transcript,
     TranscriptionHistory,
 )
+from hex.models.settings import (
+    RecordingAudioBehavior,
+    HexSettings,
+)
 
 __all__ = [
     "Key",
@@ -40,4 +44,6 @@ __all__ = [
     "WordRemovalApplier",
     "Transcript",
     "TranscriptionHistory",
+    "RecordingAudioBehavior",
+    "HexSettings",
 ]
