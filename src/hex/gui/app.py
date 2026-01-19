@@ -61,11 +61,10 @@ class HexApp(QObject):
         settings_action.triggered.connect(self._on_settings_clicked)
         menu.addAction(settings_action)
 
-        # History (placeholder for now - will be implemented in subtask-12-4)
-        # TODO: Implement history viewer
-        # history_action = QAction("History...", self._app)
-        # history_action.triggered.connect(self._on_history_clicked)
-        # menu.addAction(history_action)
+        # History... (viewer will be implemented in subtask-12-4)
+        history_action = QAction("History...", self._app)
+        history_action.triggered.connect(self._on_history_clicked)
+        menu.addAction(history_action)
 
         menu.addSeparator()
 
