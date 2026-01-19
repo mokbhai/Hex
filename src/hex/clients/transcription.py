@@ -18,6 +18,9 @@ from pathlib import Path
 from typing import Optional
 
 import httpx
+import numpy as np
+from scipy.io import wavfile
+from scipy.signal import resample
 
 from hex.utils.logging import get_logger, LogCategory
 
@@ -353,13 +356,93 @@ class TranscriptionClient:
         Returns:
             Path to processed audio file (may be same as input)
 
-        Note:
-            This is a placeholder for subtask-6-4. For now, it just returns
-            the original path. Audio preprocessing will be implemented in a later subtask.
+        Raises:
+            TranscriptionError: If audio file cannot be processed
         """
-        # TODO: Implement audio format conversion in subtask-6-4
-        # For now, just return the original path
-        return audio_path
+        target_sample_rate = 16000  # 16kHz
+
+        try:
+            # Read audio file
+            audio_path_obj = Path(audio_path)
+
+            if not audio_path_obj.exists():
+                raise TranscriptionError(f"Audio file not found: {audio_path}")
+
+            # Read the WAV file
+            try:
+                sample_rate, audio_data = wavfile.read(audio_path)
+            except Exception as e:
+                transcription_logger.error(f"Failed to read audio file: {e}")
+                raise TranscriptionError(f"Failed to read audio file: {e}") from e
+
+            transcription_logger.debug(
+                f"Audio info: sample_rate={sample_rate}, "
+                f"shape={audio_data.shape}, dtype={audio_data.dtype}"
+            )
+
+            # Check if conversion is needed
+            needs_conversion = False
+
+            # Check sample rate
+            if sample_rate != target_sample_rate:
+                transcription_logger.debug(
+                    f"Sample rate {sample_rate}Hz != {target_sample_rate}Hz, resampling needed"
+                )
+                needs_conversion = True
+
+            # Check if stereo (needs conversion to mono)
+            if len(audio_data.shape) > 1:
+                transcription_logger.debug(f"Audio is stereo ({audio_data.shape[1]} channels), converting to mono")
+                needs_conversion = True
+
+            # If no conversion needed, return original path
+            if not needs_conversion:
+                transcription_logger.debug("Audio is already in correct format (16kHz mono)")
+                return audio_path
+
+            # Perform conversion
+            transcription_logger.info("Converting audio to 16kHz mono WAV format")
+
+            # Convert to mono if stereo
+            if len(audio_data.shape) > 1:
+                # Average channels to create mono
+                audio_data = np.mean(audio_data, axis=1, dtype=audio_data.dtype)
+
+            # Resample if needed
+            if sample_rate != target_sample_rate:
+                # Calculate number of samples for target sample rate
+                duration_seconds = len(audio_data) / sample_rate
+                target_length = int(duration_seconds * target_sample_rate)
+
+                # Resample using scipy
+                audio_data = resample(audio_data, target_length)
+
+                # Convert back to original dtype (usually int16)
+                if audio_data.dtype != np.int16:
+                    # Normalize and convert to int16
+                    audio_data = np.clip(audio_data, -1.0, 1.0)
+                    audio_data = (audio_data * 32767).astype(np.int16)
+
+            # Create temporary file for converted audio
+            import tempfile
+
+            with tempfile.NamedTemporaryFile(
+                suffix=".wav", delete=False, prefix="hex_audio_"
+            ) as temp_file:
+                temp_path = temp_file.name
+
+            # Write the converted audio
+            wavfile.write(temp_path, target_sample_rate, audio_data)
+
+            transcription_logger.info(f"Audio converted and saved to {temp_path}")
+
+            return temp_path
+
+        except TranscriptionError:
+            raise
+        except Exception as e:
+            transcription_logger.error(f"Audio preprocessing failed: {e}")
+            raise TranscriptionError(f"Audio preprocessing failed: {e}") from e
 
     async def _transcribe_with_ollama(self, audio_path: str, model: str) -> str:
         """Perform transcription using Ollama API.
