@@ -8,6 +8,11 @@ This package contains client implementations that handle various system interact
 - ClipboardClient: System clipboard operations
 """
 
+from hex.clients.clipboard import (
+    ClipboardClient,
+    PasteStrategy,
+    PasteboardSnapshot,
+)
 from hex.clients.key_event_monitor import (
     KeyEventMonitorClient,
     KeyEventMonitorToken,
@@ -30,4 +35,7 @@ __all__ = [
     "KeyEventMonitorToken",
     "create_key_event_monitor",
     "TranscriptPersistenceClient",
+    "ClipboardClient",
+    "PasteStrategy",
+    "PasteboardSnapshot",
 ]
