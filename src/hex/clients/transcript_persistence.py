@@ -8,19 +8,25 @@ The client handles:
 - Saving audio files to persistent storage
 - Creating transcript records with metadata
 - Deleting audio files when transcripts are removed
+- Loading and saving transcription history
+- Trimming history to max_history_entries
 """
 
+import json
 import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from hex.models.transcription import Transcript
+from hex.models.transcription import Transcript, TranscriptionHistory
 from hex.utils.logging import get_logger, LogCategory
 
 
 # Module logger
 persistence_logger = get_logger(LogCategory.HISTORY)
+
+# History filename
+HISTORY_FILENAME = "history.json"
 
 
 class TranscriptPersistenceClient:
@@ -181,6 +187,184 @@ class TranscriptPersistenceClient:
         recordings_folder = base_path / "Recordings"
 
         return recordings_folder
+
+    def _get_history_path(self) -> Path:
+        """Get the path to the history JSON file.
+
+        Returns:
+            Path to the history.json file in Application Support
+
+        Example:
+            >>> path = client._get_history_path()
+            >>> print(path)
+            ~/Library/Application Support/com.kitlangton.Hex/history.json
+        """
+        if self.app_support_path:
+            # Use custom path if provided
+            base_path = self.app_support_path
+        else:
+            # Use default Application Support location
+            home = Path.home()
+            base_path = home / "Library" / "Application Support" / "com.kitlangton.Hex"
+
+        # Create history file path
+        history_path = base_path / HISTORY_FILENAME
+
+        return history_path
+
+    async def load(self) -> list[Transcript]:
+        """Load transcription history from disk.
+
+        Reads the history JSON file and deserializes it into a list of
+        Transcript objects. If the file doesn't exist or contains invalid
+        data, returns an empty list.
+
+        Returns:
+            List of Transcript objects representing the history
+
+        Example:
+            >>> history = await client.load()
+            >>> print(f"Loaded {len(history)} transcripts")
+        """
+        history_path = self._get_history_path()
+
+        # Check if history file exists
+        if not history_path.exists():
+            persistence_logger.info("History file not found, returning empty history")
+            return []
+
+        try:
+            # Read and parse JSON file
+            with open(history_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Deserialize list of transcripts
+            history = []
+            for item in data:
+                # Convert timestamp string back to datetime
+                item["timestamp"] = datetime.fromisoformat(item["timestamp"])
+                # Convert audio_path string back to Path
+                item["audio_path"] = Path(item["audio_path"])
+                # Create Transcript object
+                transcript = Transcript(**item)
+                history.append(transcript)
+
+            persistence_logger.debug(f"Loaded {len(history)} transcripts from {history_path}")
+            return history
+
+        except json.JSONDecodeError as e:
+            persistence_logger.error(f"Invalid JSON in history file: {e}")
+            return []
+
+        except (ValueError, KeyError, TypeError) as e:
+            persistence_logger.error(f"Error parsing history: {e}")
+            return []
+
+        except Exception as e:
+            persistence_logger.error(f"Unexpected error loading history: {e}")
+            return []
+
+    async def save_history(self, history: list[Transcript]) -> None:
+        """Save transcription history to disk.
+
+        Serializes the provided list of Transcript objects to JSON and
+        writes it to disk. Creates the configuration directory if it
+        doesn't exist.
+
+        Args:
+            history: List of Transcript objects to save
+
+        Raises:
+            OSError: If unable to write to the history file
+            TypeError: If history cannot be serialized to JSON
+
+        Example:
+            >>> await client.save_history(history)
+        """
+        history_path = self._get_history_path()
+
+        try:
+            # Ensure directory exists
+            history_path.parent.mkdir(parents=True, exist_ok=True)
+
+            # Serialize transcripts to list of dicts
+            data = []
+            for transcript in history:
+                # Convert Transcript to dict
+                transcript_dict = {
+                    "id": str(transcript.id),
+                    "text": transcript.text,
+                    "audio_path": str(transcript.audio_path),
+                    "duration": transcript.duration,
+                    "timestamp": transcript.timestamp.isoformat(),
+                    "source_app_bundle_id": transcript.source_app_bundle_id,
+                    "source_app_name": transcript.source_app_name,
+                }
+                data.append(transcript_dict)
+
+            # Atomic write pattern (write to temp, then rename)
+            temp_path = history_path.with_suffix(".tmp")
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+
+            # Atomic rename
+            temp_path.replace(history_path)
+
+            persistence_logger.debug(f"Saved {len(history)} transcripts to {history_path}")
+
+        except (TypeError, ValueError) as e:
+            persistence_logger.error(f"Error serializing history: {e}")
+            raise
+
+        except OSError as e:
+            persistence_logger.error(f"Error writing history file: {e}")
+            raise
+
+        except Exception as e:
+            persistence_logger.error(f"Unexpected error saving history: {e}")
+            raise
+
+    async def trim_history(
+        self, history: list[Transcript], max_entries: Optional[int]
+    ) -> list[Transcript]:
+        """Trim history to maximum number of entries.
+
+        Removes oldest entries from the history if it exceeds the maximum
+        number of entries. History is sorted by timestamp (newest first)
+        before trimming, so the oldest transcripts are removed first.
+
+        Args:
+            history: List of Transcript objects to trim
+            max_entries: Maximum number of entries to keep. If None, no trimming is performed.
+
+        Returns:
+            Trimmed list of Transcript objects
+
+        Example:
+            >>> trimmed = await client.trim_history(history, max_entries=100)
+            >>> print(f"Trimmed to {len(trimmed)} entries")
+        """
+        # If max_entries is None or 0, no trimming
+        if max_entries is None or max_entries <= 0:
+            return history
+
+        # If history is already within limit, no trimming needed
+        if len(history) <= max_entries:
+            return history
+
+        # Sort by timestamp (newest first) and keep max_entries most recent
+        sorted_history = sorted(history, key=lambda t: t.timestamp, reverse=True)
+        trimmed_history = sorted_history[:max_entries]
+
+        # Log removed entries
+        removed_count = len(history) - len(trimmed_history)
+        persistence_logger.info(
+            f"Trimmed history from {len(history)} to {len(trimmed_history)} entries "
+            f"(removed {removed_count} oldest entries)"
+        )
+
+        # Return in original order (oldest first)
+        return sorted(trimmed_history, key=lambda t: t.timestamp)
 
 
 __all__ = ["TranscriptPersistenceClient"]
