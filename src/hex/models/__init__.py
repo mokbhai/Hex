@@ -13,6 +13,12 @@ from hex.models.key_event import (
     InputEventType,
     KeyEvent,
 )
+from hex.models.word_processing import (
+    WordRemapping,
+    WordRemappingApplier,
+    WordRemoval,
+    WordRemovalApplier,
+)
 
 __all__ = [
     "Key",
@@ -24,4 +30,8 @@ __all__ = [
     "InputEvent",
     "InputEventType",
     "KeyEvent",
+    "WordRemapping",
+    "WordRemappingApplier",
+    "WordRemoval",
+    "WordRemovalApplier",
 ]
