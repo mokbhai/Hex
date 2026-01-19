@@ -394,16 +394,16 @@ class TranscriptionClient:
                 }
 
                 response = await self._http_client.post(
-                    f"{self.ollama_host}/api/generate",
+                    f"{self.ollama_host}/api/transcribe",
                     files=files,
                     data=data,
                 )
 
             response.raise_for_status()
 
-            # Parse response
+            # Parse response - Ollama's /api/transcribe returns "text" field
             result = response.json()
-            text = result.get("response", "").strip()
+            text = result.get("text", "").strip()
 
             if not text:
                 transcription_logger.warning("Empty transcription returned")
