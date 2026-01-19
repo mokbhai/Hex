@@ -386,23 +386,110 @@ class TranscriptionFeature:
             self._logger.error(f"Failed to stop recording: {e}")
             self.state = replace(self.state, error=str(e))
 
-    # MARK: - Cancel/Discard Handlers (stubs for now)
+    # MARK: - Cancel/Discard Handlers
 
     async def _handle_cancel(self, kwargs: dict) -> None:
-        """Handle CANCEL action.
+        """Handle CANCEL action - Explicit cancellation with sound.
 
-        This will be implemented in subtask-11-7.
+        This action cancels the current recording or transcription with a sound
+        effect to provide feedback to the user. It's used when:
+        - User presses Escape while idle
+        - User cancels via HotKeyProcessor (modifier key held too long, then cancelled)
+        - Any explicit cancellation of recording/transcription
+
+        Only cancels if we're in the middle of recording, transcribing, or prewarming.
+        Updates state, cancels any pending transcription, stops recording,
+        deletes audio file, and plays cancel sound effect.
+
+        This mirrors handleCancel from TranscriptionFeature.swift.
         """
-        self._logger.info("Canceling recording")
-        # TODO: Implement in subtask-11-7
+        # Only cancel if we're in the middle of recording, transcribing, or prewarming
+        if not (self.state.is_recording or self.state.is_transcribing):
+            self._logger.debug("Cancel action ignored: not recording or transcribing")
+            return
+
+        self._logger.info("Canceling recording/transcription")
+
+        # Update state
+        self.state = replace(
+            self.state,
+            is_transcribing=False,
+            is_recording=False,
+            is_prewarming=False,
+        )
+
+        # Cancel any pending transcription and stop recording
+        # TODO: Cancel pending transcription (CancelID.transcription)
+        # TODO: Allow system sleep (sleepManagement.allowSleep)
+
+        # Stop recording to release microphone access
+        try:
+            audio_url = await self._recording_client.stop_recording()
+            self._logger.info(f"Recording stopped due to cancel: {audio_url}")
+
+            # Delete the audio file
+            try:
+                if audio_url and audio_url.exists():
+                    audio_url.unlink()
+                    self._logger.debug(f"Deleted audio file: {audio_url}")
+            except Exception as e:
+                self._logger.warning(f"Failed to delete audio file: {e}")
+
+        except Exception as e:
+            self._logger.error(f"Failed to stop recording during cancel: {e}")
+
+        # Play cancel sound effect
+        try:
+            await self._sound_effects_client.play(SoundEffect.CANCEL)
+            self._logger.debug("Played cancel sound effect")
+        except Exception as e:
+            self._logger.warning(f"Failed to play cancel sound effect: {e}")
 
     async def _handle_discard(self, kwargs: dict) -> None:
-        """Handle DISCARD action.
+        """Handle DISCARD action - Silent discard for quick/accidental recordings.
 
-        This will be implemented in subtask-11-7.
+        This action silently discards a recording without playing a sound effect.
+        It's used when:
+        - Recording was too short (below minimumKeyTime threshold)
+        - Accidental recording detected (e.g., modifier-only hotkey pressed briefly)
+        - Mouse click or extra modifier detected during threshold period
+
+        Only discards if we're currently recording. Updates state, stops recording,
+        deletes audio file, and allows system sleep - all without sound feedback.
+
+        This mirrors handleDiscard from TranscriptionFeature.swift.
         """
-        self._logger.info("Discarding recording")
-        # TODO: Implement in subtask-11-7
+        # Only discard if we're currently recording
+        if not self.state.is_recording:
+            self._logger.debug("Discard action ignored: not recording")
+            return
+
+        self._logger.info("Silently discarding recording")
+
+        # Update state
+        self.state = replace(
+            self.state,
+            is_recording=False,
+            is_prewarming=False,
+        )
+
+        # TODO: Allow system sleep (sleepManagement.allowSleep)
+
+        # Stop recording and delete audio file silently
+        try:
+            audio_url = await self._recording_client.stop_recording()
+            self._logger.info(f"Recording stopped due to discard: {audio_url}")
+
+            # Delete the audio file
+            try:
+                if audio_url and audio_url.exists():
+                    audio_url.unlink()
+                    self._logger.debug(f"Deleted audio file: {audio_url}")
+            except Exception as e:
+                self._logger.warning(f"Failed to delete audio file: {e}")
+
+        except Exception as e:
+            self._logger.error(f"Failed to stop recording during discard: {e}")
 
     # MARK: - Transcription Handlers
 
