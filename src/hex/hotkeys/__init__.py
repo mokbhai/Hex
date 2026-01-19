@@ -5,5 +5,13 @@ hotkey activations, including press-and-hold and double-tap lock modes.
 """
 
 from hex.hotkeys.processor import HotKeyProcessor, State, Output
+from hex.hotkeys.decision_engine import RecordingDecisionEngine, Decision, Context
 
-__all__ = ["HotKeyProcessor", "State", "Output"]
+__all__ = [
+    "HotKeyProcessor",
+    "State",
+    "Output",
+    "RecordingDecisionEngine",
+    "Decision",
+    "Context",
+]
