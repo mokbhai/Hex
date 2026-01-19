@@ -8,6 +8,11 @@ from hex.models.hotkey import (
     Modifiers,
     HotKey,
 )
+from hex.models.key_event import (
+    InputEvent,
+    InputEventType,
+    KeyEvent,
+)
 
 __all__ = [
     "Key",
@@ -16,4 +21,7 @@ __all__ = [
     "Modifier",
     "Modifiers",
     "HotKey",
+    "InputEvent",
+    "InputEventType",
+    "KeyEvent",
 ]
