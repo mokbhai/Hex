@@ -110,9 +110,10 @@ class RecordingClient:
         self._recording_file: Optional[Path] = None
 
         # Audio level monitoring
-        self._audio_queue: queue.Queue[np.ndarray] = queue.Queue()
+        self._audio_queue: queue.Queue[np.ndarray] = queue.Queue(maxsize=10)
         self._meter_task: Optional[asyncio.Task] = None
         self._meter_stop_event = threading.Event()
+        self._meter_queue: asyncio.Queue[Meter] = asyncio.Queue(maxsize=10)
 
         # Device management
         self._selected_device_id: Optional[int] = None
@@ -133,6 +134,13 @@ class RecordingClient:
 
         # Clear previous recording data
         self._recording_data = []
+
+        # Clear meter queue from previous recording
+        while not self._meter_queue.empty():
+            try:
+                self._meter_queue.get_nowait()
+            except asyncio.QueueEmpty:
+                break
 
         # Determine which device to use
         device_id = self._selected_device_id
@@ -246,27 +254,13 @@ class RecordingClient:
         """
         while not self._meter_stop_event.is_set():
             try:
-                # Get audio data from queue (non-blocking)
+                # Get meter from queue (with timeout)
                 try:
-                    audio_data = self._audio_queue.get_nowait()
-
-                    # Calculate audio levels
-                    if len(audio_data) > 0:
-                        # Calculate RMS (root mean square) for average power
-                        rms = np.sqrt(np.mean(audio_data**2))
-                        average_power = float(min(rms, 1.0))
-
-                        # Calculate peak power
-                        peak_power = float(np.max(np.abs(audio_data)))
-                        peak_power = min(peak_power, 1.0)
-
-                        yield Meter(averagePower=average_power, peakPower=peak_power)
-                except queue.Empty:
-                    # No new audio data, yield zero meter
+                    meter = await asyncio.wait_for(self._meter_queue.get(), timeout=0.2)
+                    yield meter
+                except asyncio.TimeoutError:
+                    # No new meter data, yield zero meter
                     yield Meter(averagePower=0.0, peakPower=0.0)
-
-                # Wait a bit before next sample (~10 Hz)
-                await asyncio.sleep(0.1)
 
             except asyncio.CancelledError:
                 break
@@ -422,11 +416,38 @@ class RecordingClient:
     async def _monitor_audio_levels(self) -> None:
         """Background task to monitor audio levels.
 
-        This task runs in the background while recording to provide
-        real-time audio level information through the observe_audio_level stream.
+        This task runs in the background while recording to calculate
+        and publish meter values to the meter queue.
         """
         try:
             while not self._meter_stop_event.is_set():
+                try:
+                    # Get audio data from queue (non-blocking with timeout)
+                    audio_data = self._audio_queue.get_nowait()
+
+                    # Calculate audio levels
+                    if len(audio_data) > 0:
+                        # Calculate RMS (root mean square) for average power
+                        rms = np.sqrt(np.mean(audio_data**2))
+                        average_power = float(min(rms, 1.0))
+
+                        # Calculate peak power
+                        peak_power = float(np.max(np.abs(audio_data)))
+                        peak_power = min(peak_power, 1.0)
+
+                        meter = Meter(averagePower=average_power, peakPower=peak_power)
+
+                        # Put meter in queue (non-blocking)
+                        try:
+                            self._meter_queue.put_nowait(meter)
+                        except asyncio.QueueFull:
+                            # Meter queue is full, drop this reading
+                            pass
+                except queue.Empty:
+                    # No new audio data, wait a bit
+                    pass
+
+                # Wait a bit before next sample (~10 Hz = 100ms)
                 await asyncio.sleep(0.1)
         except asyncio.CancelledError:
             pass
@@ -484,9 +505,12 @@ class RecordingClient:
         # Stop metering
         self._meter_stop_event.set()
 
-        # Clear queue
+        # Clear audio queue
         try:
             while not self._audio_queue.empty():
                 self._audio_queue.get_nowait()
         except queue.Empty:
             pass
+
+        # Clear meter queue (need to create a new task to run async code in sync context)
+        # This is okay - the queue will be cleared on next recording start
