@@ -237,7 +237,7 @@ class TranscriptionClient:
             True if server is accessible
 
         Raises:
-            OllamaConnectionError: If server is not available
+            OllamaConnectionError: If server is not available with helpful error message
 
         Example:
             >>> try:
@@ -259,23 +259,60 @@ class TranscriptionClient:
                 return True
             else:
                 raise OllamaConnectionError(
-                    f"Ollama server returned status {response.status_code}"
+                    f"Ollama server returned unexpected status {response.status_code}. "
+                    f"Expected 200 OK. Server URL: {self.ollama_host}"
                 )
 
         except httpx.ConnectError as e:
-            raise OllamaConnectionError(
-                "Cannot connect to Ollama server. "
-                "Please ensure Ollama is running (run 'ollama serve' in terminal). "
-                f"Server URL: {self.ollama_host}"
-            ) from e
-        except httpx.TimeoutException:
-            raise OllamaConnectionError(
-                f"Ollama server timed out. Server URL: {self.ollama_host}"
+            # Connection refused - server not running or wrong address
+            error_msg = (
+                "Cannot connect to Ollama server.\n\n"
+                f"  Server URL: {self.ollama_host}\n\n"
+                "Possible solutions:\n"
+                "  1. Start Ollama server: run 'ollama serve' in a terminal\n"
+                "  2. Verify Ollama is installed: visit https://ollama.ai/download\n"
+                "  3. Check if the server URL is correct\n"
+                "  4. Ensure no firewall is blocking port 11434"
             )
+            raise OllamaConnectionError(error_msg) from e
+
+        except httpx.TimeoutException:
+            # Server took too long to respond
+            error_msg = (
+                "Ollama server connection timed out.\n\n"
+                f"  Server URL: {self.ollama_host}\n"
+                f"  Timeout: {self.timeout} seconds\n\n"
+                "Possible solutions:\n"
+                "  1. Check if Ollama server is running: 'ollama serve'\n"
+                "  2. Verify the server is responding: curl http://localhost:11434/api/tags\n"
+                "  3. Check system resources - server may be overloaded"
+            )
+            raise OllamaConnectionError(error_msg)
+
+        except httpx.HTTPStatusError as e:
+            # Server responded but with an error status
+            error_msg = (
+                f"Ollama server returned error status {e.response.status_code}.\n\n"
+                f"  Server URL: {self.ollama_host}\n\n"
+                "Possible solutions:\n"
+                "  1. Restart Ollama server\n"
+                "  2. Check Ollama logs for errors\n"
+                "  3. Ensure you're using a compatible version of Ollama"
+            )
+            raise OllamaConnectionError(error_msg) from e
+
         except Exception as e:
-            raise OllamaConnectionError(
-                f"Failed to connect to Ollama server: {e}"
-            ) from e
+            # Catch-all for other errors (network issues, etc.)
+            error_msg = (
+                f"Failed to connect to Ollama server: {type(e).__name__}: {e}\n\n"
+                f"  Server URL: {self.ollama_host}\n\n"
+                "Troubleshooting:\n"
+                "  1. Ensure Ollama is installed and running\n"
+                "  2. Test connection: curl http://localhost:11434/api/tags\n"
+                "  3. Check network settings and firewall\n"
+                "  4. Try restarting Ollama server"
+            )
+            raise OllamaConnectionError(error_msg) from e
 
     async def _get_available_models(self) -> list[dict]:
         """Get list of available models from Ollama.
