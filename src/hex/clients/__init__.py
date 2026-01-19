@@ -23,6 +23,10 @@ from hex.clients.recording import (
     Meter,
     RecordingClient,
 )
+from hex.clients.sound_effects import (
+    SoundEffect,
+    SoundEffectsClient,
+)
 from hex.clients.transcript_persistence import (
     TranscriptPersistenceClient,
 )
@@ -38,4 +42,6 @@ __all__ = [
     "ClipboardClient",
     "PasteStrategy",
     "PasteboardSnapshot",
+    "SoundEffect",
+    "SoundEffectsClient",
 ]

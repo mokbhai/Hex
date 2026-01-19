@@ -20,6 +20,7 @@ Architecture:
 """
 
 import asyncio
+import re
 import threading
 from dataclasses import replace
 from datetime import datetime
@@ -27,10 +28,13 @@ from pathlib import Path
 from queue import Empty, Queue
 from typing import Awaitable, Callable, Optional
 
+from hex.clients.clipboard import ClipboardClient
 from hex.clients.recording import RecordingClient
+from hex.clients.sound_effects import SoundEffect, SoundEffectsClient
+from hex.clients.transcript_persistence import TranscriptPersistenceClient
 from hex.models.settings import HexSettings
 from hex.models.transcription import Transcript
-from hex.models.word_processing import WordRemapping, WordRemoval
+from hex.models.word_processing import WordRemapping, WordRemoval, WordRemappingApplier, WordRemovalApplier
 from hex.transcription.actions import Action
 from hex.transcription.state import Meter, TranscriptionState
 from hex.utils.logging import get_logger, LogCategory
@@ -67,6 +71,9 @@ class TranscriptionFeature:
         self,
         settings: Optional[HexSettings] = None,
         recording_client: Optional[RecordingClient] = None,
+        clipboard_client: Optional[ClipboardClient] = None,
+        sound_effects_client: Optional[SoundEffectsClient] = None,
+        transcript_persistence_client: Optional[TranscriptPersistenceClient] = None,
     ):
         """Initialize the TranscriptionFeature.
 
@@ -74,6 +81,12 @@ class TranscriptionFeature:
             settings: User settings. If None, default settings are used.
             recording_client: Recording client for audio capture. If None, a new
                 client is created with default settings.
+            clipboard_client: Clipboard client for paste operations. If None, a new
+                client is created with default settings.
+            sound_effects_client: Sound effects client for audio feedback. If None,
+                a new client is created with default settings.
+            transcript_persistence_client: Persistence client for saving transcripts.
+                If None, a new client is created with default settings.
 
         The initialization creates a background thread that processes actions
         from the queue. The thread is marked as daemon so it will be killed
@@ -87,6 +100,15 @@ class TranscriptionFeature:
 
         # Initialize clients
         self._recording_client = recording_client or RecordingClient()
+        self._clipboard_client = clipboard_client or ClipboardClient()
+        self._sound_effects_client = sound_effects_client or SoundEffectsClient(
+            enabled=self.settings.soundEffectsEnabled,
+            volume=self.settings.soundEffectsVolume,
+        )
+        self._transcript_persistence_client = transcript_persistence_client or TranscriptPersistenceClient()
+
+        # Transcription history (thread-safe list)
+        self._transcription_history: list[Transcript] = []
 
         # Action processing
         self._action_queue: Queue[tuple[Action, dict]] = Queue()
@@ -382,17 +404,98 @@ class TranscriptionFeature:
         self._logger.info("Discarding recording")
         # TODO: Implement in subtask-11-7
 
-    # MARK: - Transcription Handlers (stubs for now)
+    # MARK: - Transcription Handlers
 
     async def _handle_transcription_result(self, kwargs: dict) -> None:
         """Handle TRANSCRIPTION_RESULT action.
 
-        This will be implemented in subtask-11-6.
+        Processes the transcription result by:
+        1. Updating state to mark transcription as complete
+        2. Checking for force quit command
+        3. Applying word removals and remappings
+        4. Saving to history if enabled
+        5. Pasting to clipboard
+        6. Playing sound effect
+
+        This mirrors handleTranscriptionResult from TranscriptionFeature.swift.
         """
         result: str = kwargs.get('result', '')
         audio_url: Path = kwargs.get('audio_url', Path())
-        self._logger.info(f"Transcription result: {len(result)} characters")
-        # TODO: Implement in subtask-11-6
+
+        # Update state
+        self.state = replace(self.state, is_transcribing=False, is_prewarming=False)
+
+        # Check for force quit command (emergency escape hatch)
+        if self._matches_force_quit_command(result):
+            self._logger.fault("Force quit voice command recognized; terminating Hex")
+            # Delete audio file
+            try:
+                if audio_url.exists():
+                    audio_url.unlink()
+            except Exception as e:
+                self._logger.error(f"Failed to delete audio file: {e}")
+            # TODO: Terminate application (need to implement app shutdown)
+            return
+
+        # If empty text, nothing else to do
+        if not result:
+            self._logger.debug("Empty transcription result, skipping")
+            return
+
+        # Calculate duration
+        duration = 0.0
+        if self.state.recording_start_time:
+            duration = (datetime.now() - self.state.recording_start_time).total_seconds()
+
+        self._logger.info(f"Raw transcription: '{result}'")
+
+        # Apply word removals and remappings
+        remappings = self.settings.wordRemappings
+        removals_enabled = self.settings.wordRemovalsEnabled
+        removals = self.settings.wordRemovals
+
+        # Check if scratchpad is focused (skip modifications if so)
+        # TODO: Implement is_remapping_scratchpad_focused check
+        is_scratchpad_focused = False
+
+        if is_scratchpad_focused:
+            modified_result = result
+            self._logger.info("Scratchpad focused; skipping word modifications")
+        else:
+            output = result
+            if removals_enabled and removals:
+                removed_result = WordRemovalApplier.apply(output, removals)
+                if removed_result != output:
+                    enabled_removal_count = sum(1 for r in removals if r.is_enabled)
+                    self._logger.info(f"Applied {enabled_removal_count} word removal(s)")
+                output = removed_result
+
+            if remappings:
+                remapped_result = WordRemappingApplier.apply(output, remappings)
+                if remapped_result != output:
+                    self._logger.info(f"Applied {len(remappings)} word remapping(s)")
+                output = remapped_result
+
+            modified_result = output
+
+        # If modified result is empty, nothing else to do
+        if not modified_result:
+            self._logger.debug("Modified transcription result is empty, skipping")
+            return
+
+        # Finalize and save
+        try:
+            await self._finalize_recording_and_store_transcript(
+                result=modified_result,
+                duration=duration,
+                source_app_bundle_id=self.state.source_app_bundle_id,
+                source_app_name=self.state.source_app_name,
+                audio_url=audio_url,
+            )
+        except Exception as e:
+            self._logger.error(f"Failed to finalize transcription: {e}")
+            # Send error action
+            await self._handle_transcription_error({'error': e, 'audio_url': audio_url})
 
     async def _handle_transcription_error(self, kwargs: dict) -> None:
         """Handle TRANSCRIPTION_ERROR action.
@@ -411,6 +514,133 @@ class TranscriptionFeature:
         """Handle MODEL_MISSING action."""
         self._logger.warning("Transcription model is not available")
         # TODO: Show user notification, trigger model download
+
+    # MARK: - Helper Methods
+
+    def _matches_force_quit_command(self, text: str) -> bool:
+        """Check if text matches the force quit command.
+
+        This is an emergency escape hatch that allows users to quit Hex
+        via voice command if the app becomes unresponsive.
+
+        Args:
+            text: The transcribed text to check
+
+        Returns:
+            True if the text matches "force quit hex" or "force quit hex now"
+        """
+        normalized = self._normalize_force_quit_text(text)
+        return normalized in ("force quit hex now", "force quit hex")
+
+    def _normalize_force_quit_text(self, text: str) -> str:
+        """Normalize text for force quit command matching.
+
+        Removes diacritics, converts to lowercase, and removes non-alphanumeric
+        characters except spaces.
+
+        Args:
+            text: The text to normalize
+
+        Returns:
+            Normalized text
+        """
+        import unicodedata
+
+        # Normalize unicode (remove diacritics)
+        normalized = unicodedata.normalize('NFKD', text)
+        # Remove diacritic marks
+        normalized = ''.join(
+            c for c in normalized
+            if not unicodedata.combining(c)
+        )
+        # Convert to lowercase
+        normalized = normalized.lower()
+        # Replace non-alphanumeric characters (except spaces) with spaces
+        normalized = re.sub(r'[^a-z0-9\s]', ' ', normalized)
+        # Collapse multiple spaces
+        normalized = re.sub(r'\s+', ' ', normalized)
+        # Strip leading/trailing whitespace
+        normalized = normalized.strip()
+
+        return normalized
+
+    async def _finalize_recording_and_store_transcript(
+        self,
+        result: str,
+        duration: float,
+        source_app_bundle_id: Optional[str],
+        source_app_name: Optional[str],
+        audio_url: Path,
+    ) -> None:
+        """Finalize recording and store transcript.
+
+        This method:
+        1. Saves the transcript to history if enabled
+        2. Manages history size (trim if exceeds max entries)
+        3. Deletes audio file if history saving is disabled
+        4. Pastes the result to the clipboard
+        5. Plays the paste transcript sound effect
+
+        Args:
+            result: The transcribed text
+            duration: Duration of the recording in seconds
+            source_app_bundle_id: Bundle ID of the source app
+            source_app_name: Name of the source app
+            audio_url: Path to the audio file
+
+        This mirrors finalizeRecordingAndStoreTranscript from TranscriptionFeature.swift.
+        """
+        if self.settings.saveTranscriptionHistory:
+            # Save transcript to history
+            try:
+                transcript = await self._transcript_persistence_client.save(
+                    result=result,
+                    audio_url=audio_url,
+                    duration=duration,
+                    source_app_bundle_id=source_app_bundle_id,
+                    source_app_name=source_app_name,
+                )
+
+                # Insert at beginning of history
+                self._transcription_history.insert(0, transcript)
+
+                # Trim history if exceeds max entries
+                max_entries = self.settings.maxHistoryEntries
+                if max_entries and max_entries > 0:
+                    while len(self._transcription_history) > max_entries:
+                        removed_transcript = self._transcription_history.pop()
+                        # Delete audio file for removed transcript
+                        try:
+                            await self._transcript_persistence_client.delete_audio(removed_transcript)
+                        except Exception as e:
+                            self._logger.warning(f"Failed to delete audio for trimmed transcript: {e}")
+
+                self._logger.info(f"Saved transcript {transcript.id} with {len(result)} characters")
+
+            except Exception as e:
+                self._logger.error(f"Failed to save transcript: {e}")
+                raise
+        else:
+            # Delete audio file if not saving to history
+            try:
+                if audio_url.exists():
+                    audio_url.unlink()
+                    self._logger.debug(f"Deleted audio file: {audio_url}")
+            except Exception as e:
+                self._logger.warning(f"Failed to delete audio file: {e}")
+
+        # Paste to clipboard
+        try:
+            await self._clipboard_client.paste(result)
+            self._logger.info(f"Pasted {len(result)} characters to clipboard")
+        except Exception as e:
+            self._logger.error(f"Failed to paste to clipboard: {e}")
+
+        # Play sound effect
+        try:
+            await self._sound_effects_client.play(SoundEffect.PASTE_TRANSCRIPT)
+        except Exception as e:
+            self._logger.warning(f"Failed to play sound effect: {e}")
 
     def __repr__(self) -> str:
         """Return string representation of the feature."""
