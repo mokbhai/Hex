@@ -171,8 +171,9 @@ class HotKeyProcessor:
             True
         """
         # 1) ESC => immediate cancel
+        if key_event.key == Key.ESCAPE:
+            hotkey_logger.info(f"ESC pressed while state={self.state.name}")
         if key_event.key == Key.ESCAPE and self.state != State.IDLE:
-            hotkey_logger.notice(f"ESC pressed while state={self.state.name}")
             self.is_dirty = True
             self._reset_to_idle()
             return Output.CANCEL
