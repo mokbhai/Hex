@@ -54,9 +54,15 @@ class HexApplication:
         """Initialize the Hex application with all components."""
         logger.info("Initializing Hex application")
 
-        # Create event loop for async operations
-        self._loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._loop)
+        # Get or create event loop for async operations
+        try:
+            self._loop = asyncio.get_running_loop()
+            logger.debug("Using existing event loop")
+        except RuntimeError:
+            # No running loop, create a new one
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
+            logger.debug("Created new event loop")
 
         # Load settings
         self._settings_manager = SettingsManager()
@@ -109,7 +115,7 @@ class HexApplication:
             logger.error(f"Failed to load settings, using defaults: {e}", exc_info=True)
             return HexSettings()
 
-    def _connect_gui_signals(self):
+    def _connect_gui_signals(self) -> None:
         """Connect GUI signals to business logic."""
         # Connect settings_requested signal
         self.app.settings_requested.connect(self._on_settings_requested)
@@ -120,7 +126,7 @@ class HexApplication:
         # Connect quit_requested signal for cleanup
         self.app.quit_requested.connect(self._on_quit_requested)
 
-    def _on_settings_requested(self):
+    def _on_settings_requested(self) -> None:
         """Handle settings dialog request."""
         logger.info("Opening settings dialog")
 
@@ -144,16 +150,16 @@ class HexApplication:
             # Restart hotkey monitoring with new hotkey
             self._restart_hotkey_monitoring()
 
-    def _on_history_requested(self):
+    def _on_history_requested(self) -> None:
         """Handle history dialog request."""
         logger.info("History dialog requested (handled by GUI app)")
 
-    def _on_quit_requested(self):
+    def _on_quit_requested(self) -> None:
         """Handle quit request with proper cleanup."""
         logger.info("Quit requested, cleaning up")
         self.shutdown()
 
-    def _start_hotkey_monitoring(self):
+    def _start_hotkey_monitoring(self) -> None:
         """Start global hotkey monitoring for recording."""
         try:
             # Check accessibility permission on macOS
@@ -180,7 +186,7 @@ class HexApplication:
         except Exception as e:
             logger.error(f"Failed to start hotkey monitoring: {e}", exc_info=True)
 
-    def _restart_hotkey_monitoring(self):
+    def _restart_hotkey_monitoring(self) -> None:
         """Restart hotkey monitoring with updated settings."""
         logger.info("Restarting hotkey monitoring")
 
@@ -287,7 +293,7 @@ class HexApplication:
         finally:
             self.shutdown()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Clean shutdown of all components."""
         logger.info("Shutting down Hex application")
 
@@ -310,13 +316,24 @@ class HexApplication:
             # Shutdown GUI
             self.app.shutdown()
 
-            # Close event loop
+            # Close event loop (only if we created it)
             if self._loop and not self._loop.is_closed():
-                pending = asyncio.all_tasks(self._loop)
-                for task in pending:
-                    task.cancel()
-                self._loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
-                self._loop.close()
+                try:
+                    # Only close if it's not the running loop
+                    asyncio.get_running_loop()
+                    # If we got here, there's a running loop, don't close it
+                    logger.debug("Event loop is running, skipping closure")
+                except RuntimeError:
+                    # No running loop, safe to close
+                    pending = asyncio.all_tasks(self._loop)
+                    if pending:
+                        for task in pending:
+                            task.cancel()
+                        self._loop.run_until_complete(
+                            asyncio.gather(*pending, return_exceptions=True)
+                        )
+                    self._loop.close()
+                    logger.debug("Event loop closed")
 
             logger.info("Hex application shutdown complete")
 

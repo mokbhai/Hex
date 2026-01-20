@@ -255,8 +255,11 @@ class ClipboardClient:
         except subprocess.TimeoutExpired:
             clipboard_logger.error("Cmd+V timed out")
             return False
+        except OSError as e:
+            clipboard_logger.error(f"System error during Cmd+V: {e}")
+            return False
         except Exception as e:
-            clipboard_logger.error(f"Cmd+V error: {e}")
+            clipboard_logger.error(f"Unexpected error during Cmd+V: {e}", exc_info=True)
             return False
 
     async def _paste_via_menu_item(self) -> bool:
@@ -305,8 +308,11 @@ class ClipboardClient:
         except subprocess.TimeoutExpired:
             clipboard_logger.error("Menu item paste timed out")
             return False
+        except OSError as e:
+            clipboard_logger.error(f"System error during menu item paste: {e}")
+            return False
         except Exception as e:
-            clipboard_logger.error(f"Menu item paste error: {e}")
+            clipboard_logger.error(f"Unexpected error during menu item paste: {e}", exc_info=True)
             return False
 
     async def _simulate_typing(self, text: str) -> None:
@@ -336,5 +342,7 @@ class ClipboardClient:
                 clipboard_logger.warning(f"Typing simulation failed: {result.stderr}")
         except subprocess.TimeoutExpired:
             clipboard_logger.error("Typing simulation timed out")
+        except OSError as e:
+            clipboard_logger.error(f"System error during typing simulation: {e}")
         except Exception as e:
-            clipboard_logger.error(f"Typing simulation error: {e}")
+            clipboard_logger.error(f"Unexpected error during typing simulation: {e}", exc_info=True)

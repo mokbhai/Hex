@@ -5,9 +5,10 @@ It mirrors the structure from Hex/Features/Settings/HistorySectionView.swift
 adapted for PySide6.
 """
 
+import asyncio
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, TypeVar
 
 from PySide6.QtWidgets import (
     QDialog,
@@ -34,6 +35,8 @@ from hex.clients.transcript_persistence import TranscriptPersistenceClient
 from hex.utils.logging import get_logger
 
 logger = get_logger("gui.history_dialog")
+
+T = TypeVar('T')
 
 
 class HistoryDialog(QDialog):
@@ -66,6 +69,26 @@ class HistoryDialog(QDialog):
 
         self._setup_ui()
         self._load_history()
+
+    def _run_async(self, coro) -> T:
+        """Run an async coroutine in a new event loop.
+
+        This helper method creates a temporary event loop for running async operations
+        from synchronous code. The loop is properly closed after use.
+
+        Args:
+            coro: The coroutine to run
+
+        Returns:
+            The result of the coroutine
+        """
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            result = loop.run_until_complete(coro)
+            return result
+        finally:
+            loop.close()
 
     def _setup_ui(self) -> None:
         """Set up the user interface for the history dialog."""
@@ -220,14 +243,9 @@ class HistoryDialog(QDialog):
 
         This method is called via QTimer to avoid blocking the UI.
         """
-        import asyncio
-
         try:
             # Load history
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            transcripts = loop.run_until_complete(self._persistence_client.load())
-            loop.close()
+            transcripts = self._run_async(self._persistence_client.load())
 
             self._transcripts = transcripts
 
@@ -449,13 +467,8 @@ class HistoryDialog(QDialog):
 
         try:
             # Delete audio file
-            import asyncio
-
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
             try:
-                loop.run_until_complete(
+                self._run_async(
                     self._persistence_client.delete_audio(transcript)
                 )
             except FileNotFoundError:
@@ -463,18 +476,13 @@ class HistoryDialog(QDialog):
                     f"Audio file not found for transcript {transcript.id}, skipping deletion"
                 )
 
-            loop.close()
-
             # Remove from local list
             self._transcripts.remove(transcript)
 
             # Save updated history
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(
+            self._run_async(
                 self._persistence_client.save_history(self._transcripts)
             )
-            loop.close()
 
             # Refresh UI
             self._load_history()
@@ -513,15 +521,10 @@ class HistoryDialog(QDialog):
             return
 
         try:
-            import asyncio
-
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
             # Delete all audio files
             for transcript in self._transcripts:
                 try:
-                    loop.run_until_complete(
+                    self._run_async(
                         self._persistence_client.delete_audio(transcript)
                     )
                 except FileNotFoundError:
@@ -529,16 +532,11 @@ class HistoryDialog(QDialog):
                         f"Audio file not found for transcript {transcript.id}, skipping"
                     )
 
-            loop.close()
-
             # Clear list and save empty history
             self._transcripts = []
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(
+            self._run_async(
                 self._persistence_client.save_history(self._transcripts)
             )
-            loop.close()
 
             # Refresh UI
             self._load_history()
