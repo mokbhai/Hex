@@ -1,0 +1,39 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Write(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Edit(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Glob(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Grep(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Read(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/.auto-claude/specs/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Write(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/.auto-claude/specs/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Edit(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/worktrees/tasks/003-migrate-hex-from-swift-to-python-no-more-limited-t/.auto-claude/specs/003-migrate-hex-from-swift-to-python-no-more-limited-t/**)",
+      "Read(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/**)",
+      "Write(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/**)",
+      "Edit(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/**)",
+      "Glob(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/**)",
+      "Grep(/Users/mokshitjain/Codes/Self/open-source/Hex/.auto-claude/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}

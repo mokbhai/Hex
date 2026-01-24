@@ -1,0 +1,25 @@
+{
+  "active": true,
+  "spec": "003-migrate-hex-from-swift-to-python-no-more-limited-t",
+  "state": "complete",
+  "subtasks": {
+    "completed": 59,
+    "total": 59,
+    "in_progress": 0,
+    "failed": 0
+  },
+  "phase": {
+    "current": "Integration and End-to-End",
+    "id": null,
+    "total": 9
+  },
+  "workers": {
+    "active": 0,
+    "max": 1
+  },
+  "session": {
+    "number": 20,
+    "started_at": "2026-01-19T23:28:02.229822"
+  },
+  "last_update": "2026-01-20T01:39:32.470634"
+}
