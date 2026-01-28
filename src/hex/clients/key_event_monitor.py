@@ -470,7 +470,8 @@ class KeyEventMonitorClient:
             key_event = KeyEvent(
                 key=hex_key,
                 modifiers=modifiers,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
+                is_press=is_press,
             )
 
             return key_event

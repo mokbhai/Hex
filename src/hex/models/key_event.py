@@ -51,6 +51,7 @@ class KeyEvent:
     key: Optional[Key]
     modifiers: Modifiers
     timestamp: datetime
+    is_press: bool = True
 
     def __str__(self) -> str:
         """String representation of the key event."""

@@ -207,29 +207,19 @@ class HexApplication:
         Returns:
             True to consume the event, False to let it propagate
         """
-        from hex.models.key_event import InputEventType
-
-        # Only process key down and key up events
-        if event.event_type not in [
-            InputEventType.KEY_DOWN,
-            InputEventType.KEY_UP,
-        ]:
-            return False
-
         # Check if this event matches our hotkey
         if not self._matches_hotkey(event):
             return False
 
         # Dispatch appropriate action to TranscriptionFeature
-        if event.event_type == InputEventType.KEY_DOWN:
+        if event.is_press:
             logger.debug("Hotkey pressed - starting recording")
             self.transcription_feature.send(Action.HOTKEY_PRESSED)
 
             # Show recording indicator
             self.recording_indicator.set_status(IndicatorStatus.RECORDING)
             self.recording_indicator.show()
-
-        elif event.event_type == InputEventType.KEY_UP:
+        else:
             logger.debug("Hotkey released - stopping recording")
             self.transcription_feature.send(Action.HOTKEY_RELEASED)
 

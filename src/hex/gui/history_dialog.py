@@ -28,7 +28,8 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
 )
 from PySide6.QtCore import Qt, Signal, Slot, QTimer
-from PySide6.QtGui import QFont, QTextCursor, QApplication
+from PySide6.QtGui import QFont, QTextCursor
+from PySide6.QtWidgets import QApplication
 
 from hex.models.transcription import Transcript
 from hex.clients.transcript_persistence import TranscriptPersistenceClient
