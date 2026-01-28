@@ -33,8 +33,8 @@ def load_module_from_path(module_name, file_path):
 
 # Load required modules directly
 transcription_module = load_module_from_path(
-    "hex.models.transcription",
-    Path(__file__).parent.parent / "src" / "hex" / "models" / "transcription.py"
+    "vox.models.transcription",
+    Path(__file__).parent.parent / "src" / "vox" / "models" / "transcription.py"
 )
 
 # Import from loaded module
@@ -42,8 +42,8 @@ Transcript = transcription_module.Transcript
 
 # Load persistence client module
 persistence_module = load_module_from_path(
-    "hex.clients.transcript_persistence",
-    Path(__file__).parent.parent / "src" / "hex" / "clients" / "transcript_persistence.py"
+    "vox.clients.transcript_persistence",
+    Path(__file__).parent.parent / "src" / "vox" / "clients" / "transcript_persistence.py"
 )
 
 TranscriptPersistenceClient = persistence_module.TranscriptPersistenceClient
@@ -67,7 +67,7 @@ MANUAL_TESTING_INSTRUCTIONS = """
 
 2. **Install Hex Python application:**
    ```bash
-   cd /path/to/hex-python
+   cd /path/to/vox-python
    pip install -e .
    ```
 
@@ -80,7 +80,7 @@ MANUAL_TESTING_INSTRUCTIONS = """
 **Objective:** Verify that multiple transcriptions are saved and displayed correctly
 
 **Steps:**
-1. Launch the application: `python -m hex`
+1. Launch the application: `python -m vox`
 2. Open a text editor (TextEdit, VSCode, etc.)
 3. **First transcription:**
    - Press and hold Option key
@@ -220,7 +220,7 @@ MANUAL_TESTING_INSTRUCTIONS = """
 2. Verify they appear in History dialog
 3. Close the History dialog
 4. Quit the application (right-click tray → Quit)
-5. Relaunch the application: `python -m hex`
+5. Relaunch the application: `python -m vox`
 6. Open History dialog again
 
 **Expected Results:**
@@ -268,7 +268,7 @@ MANUAL_TESTING_INSTRUCTIONS = """
 **Steps:**
 1. Create a transcription
 2. Open the Recordings folder in Finder:
-   - `~/Library/Application Support/com.kitlangton.Hex/Recordings/`
+   - `~/Library/Application Support/com.mokbhaimj.Vox/Recordings/`
 3. Manually delete the audio file for one transcription
 4. Reopen History dialog
 5. Select the transcription with missing audio

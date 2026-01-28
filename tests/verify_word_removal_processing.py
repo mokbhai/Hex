@@ -2,14 +2,14 @@
 """Comprehensive verification suite for word remapping/removal processing.
 
 This script tests the word remapping and removal functionality implemented in:
-- src/hex/processing/word_remapping.py
-- src/hex/processing/word_removal.py
-- src/hex/models/word_processing.py
+- src/vox/processing/word_remapping.py
+- src/vox/processing/word_removal.py
+- src/vox/models/word_processing.py
 
 Tests cover:
 1. WordRemappingApplier functionality
 2. WordRemovalApplier functionality
-3. Integration with settings (word removals/remappings from HexSettings)
+3. Integration with settings (word removals/remappings from VoxSettings)
 4. Edge cases (empty rules, disabled rules, case sensitivity, etc.)
 5. Real-world scenarios (filler words, common transcription errors)
 """
@@ -21,14 +21,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
-    from hex.models.word_processing import (
+    from vox.models.word_processing import (
         WordRemapping,
         WordRemoval,
         WordRemappingApplier,
         WordRemovalApplier,
     )
-    from hex.processing.word_remapping import WordRemappingApplier as ProcessingRemappingApplier
-    from hex.processing.word_removal import WordRemovalApplier as ProcessingRemovalApplier
+    from vox.processing.word_remapping import WordRemappingApplier as ProcessingRemappingApplier
+    from vox.processing.word_removal import WordRemovalApplier as ProcessingRemovalApplier
 except ImportError as e:
     print(f"❌ Import error: {e}")
     print("\n⚠️  Cannot run verification - missing dependencies or incorrect path")
@@ -511,9 +511,9 @@ def main() -> int:
 
     print_info("Testing word remapping and removal functionality")
     print_info("Implementation files:")
-    print_info("  - src/hex/processing/word_remapping.py")
-    print_info("  - src/hex/processing/word_removal.py")
-    print_info("  - src/hex/models/word_processing.py")
+    print_info("  - src/vox/processing/word_remapping.py")
+    print_info("  - src/vox/processing/word_removal.py")
+    print_info("  - src/vox/models/word_processing.py")
 
     # Run all test parts
     results = {

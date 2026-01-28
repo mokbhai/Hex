@@ -1,1 +1,1 @@
-"""Test suite for hex-voice-to-text."""
+"""Test suite for vox-voice-to-text."""

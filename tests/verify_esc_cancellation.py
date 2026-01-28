@@ -17,12 +17,12 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from datetime import datetime
-from hex.models.hotkey import HotKey, Modifier, Modifiers, Key
-from hex.models.key_event import KeyEvent
-from hex.hotkeys.processor import HotKeyProcessor, State, Output
-from hex.models.settings import HexSettings
-from hex.transcription.actions import Action
-from hex.models.transcription import Transcript
+from vox.models.hotkey import HotKey, Modifier, Modifiers, Key
+from vox.models.key_event import KeyEvent
+from vox.hotkeys.processor import HotKeyProcessor, State, Output
+from vox.models.settings import VoxSettings
+from vox.transcription.actions import Action
+from vox.models.transcription import Transcript
 
 # SoundEffect will be imported later when needed (requires PySide6)
 
@@ -210,7 +210,7 @@ def verify_transcription_feature_cancel_handler():
 
     try:
         from unittest.mock import AsyncMock, MagicMock
-        from hex.transcription.feature import TranscriptionFeature
+        from vox.transcription.feature import TranscriptionFeature
         import asyncio
 
         # Test 4: CANCEL action stops recording and plays sound
@@ -222,7 +222,7 @@ def verify_transcription_feature_cancel_handler():
             mock_sound = AsyncMock()
 
             # Create feature with mocks
-            settings = HexSettings()
+            settings = VoxSettings()
             feature = TranscriptionFeature(
                 settings=settings,
                 recording_client=mock_recording,
@@ -246,7 +246,7 @@ def verify_transcription_feature_cancel_handler():
             mock_recording.stop_recording.assert_called_once()
 
             # Verify cancel sound played
-            from hex.utils.sound import SoundEffect
+            from vox.utils.sound import SoundEffect
             mock_sound.play.assert_called_once_with(SoundEffect.CANCEL)
 
             feature.stop()
@@ -280,7 +280,7 @@ def verify_sound_effect_exists():
         from pathlib import Path
 
         # Check for cancel.mp3 in resources
-        cancel_sound_path = Path("src/hex/resources/audio/cancel.mp3")
+        cancel_sound_path = Path("src/vox/resources/audio/cancel.mp3")
 
         if cancel_sound_path.exists():
             size = cancel_sound_path.stat().st_size
@@ -345,7 +345,7 @@ def main():
         print("IMPLEMENTATION VERIFIED - READY FOR MANUAL TESTING")
         print("=" * 70)
         print("\nManual Test Steps:")
-        print("  1. Launch app: python -m hex")
+        print("  1. Launch app: python -m vox")
         print("  2. Press and hold Option key (start recording)")
         print("  3. While holding Option, press ESC key")
         print("  4. Verify:")

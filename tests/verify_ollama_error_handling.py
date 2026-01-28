@@ -20,7 +20,7 @@ from pathlib import Path
 
 # Try to import, but provide helpful error if dependencies missing
 try:
-    from hex.clients.transcription import (
+    from vox.clients.transcription import (
         TranscriptionClient,
         OllamaConnectionError,
         TranscriptionError
@@ -400,7 +400,7 @@ async def main():
 
     if not DEPENDENCIES_AVAILABLE:
         print(f"{RED}ERROR: Missing required dependencies{RESET}\n")
-        print(f"Cannot import hex.clients.transcription:")
+        print(f"Cannot import vox.clients.transcription:")
         print(f"  {IMPORT_ERROR}\n")
         print(f"{YELLOW}Skipping automated tests...{RESET}\n")
         print_manual_testing_instructions()

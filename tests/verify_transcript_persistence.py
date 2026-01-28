@@ -8,7 +8,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from hex.clients.transcript_persistence import TranscriptPersistenceClient
+from vox.clients.transcript_persistence import TranscriptPersistenceClient
 
 
 async def verify_load():
@@ -29,7 +29,7 @@ async def verify_load():
 
     # Verify all items are Transcript objects (if any)
     for item in history:
-        from hex.models.transcription import Transcript
+        from vox.models.transcription import Transcript
         assert isinstance(item, Transcript), f"History items should be Transcript objects, got {type(item)}"
     print("✓ All history items are Transcript objects")
 
@@ -40,7 +40,7 @@ async def verify_trim():
     """Verify that trim_history() method works correctly."""
     print("\nTesting TranscriptPersistenceClient.trim_history()...")
 
-    from hex.models.transcription import Transcript
+    from vox.models.transcription import Transcript
     from datetime import datetime, timedelta
     from uuid import uuid4
 
@@ -96,7 +96,7 @@ async def verify_save_load_roundtrip():
     """Verify that save_history() and load() work together."""
     print("\nTesting save_history() and load() roundtrip...")
 
-    from hex.models.transcription import Transcript
+    from vox.models.transcription import Transcript
     from datetime import datetime
     from uuid import uuid4
     import tempfile

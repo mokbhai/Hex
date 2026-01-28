@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from pathlib import Path
 import httpx
 
-from hex.clients.transcription import (
+from vox.clients.transcription import (
     TranscriptionClient,
     TranscriptionError,
     OllamaConnectionError,

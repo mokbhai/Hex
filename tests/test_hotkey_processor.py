@@ -10,15 +10,15 @@ except ImportError:
 
 from datetime import datetime, timedelta
 
-from hex.hotkeys.processor import (
+from vox.hotkeys.processor import (
     HotKeyProcessor,
     State,
     Output,
-    HexCoreConstants,
+    VoxCoreConstants,
     RecordingDecisionEngine,
 )
-from hex.models.hotkey import HotKey, Modifier, Modifiers, Key
-from hex.models.key_event import KeyEvent
+from vox.models.hotkey import HotKey, Modifier, Modifiers, Key
+from vox.models.key_event import KeyEvent
 
 
 class TestHotKeyProcessor:
@@ -167,10 +167,10 @@ class TestHotKeyProcessor:
 
     def test_timing_constants(self):
         """Test that timing constants are correctly defined."""
-        assert HexCoreConstants.doubleTapWindow == 0.3
-        assert HexCoreConstants.modifierOnlyMinimumDuration == 0.3
-        assert HexCoreConstants.pressAndHoldCancelWindow == 1.0
-        assert HexCoreConstants.defaultMinimumKeyTime == 0.2
+        assert VoxCoreConstants.doubleTapWindow == 0.3
+        assert VoxCoreConstants.modifierOnlyMinimumDuration == 0.3
+        assert VoxCoreConstants.pressAndHoldCancelWindow == 1.0
+        assert VoxCoreConstants.defaultMinimumKeyTime == 0.2
 
         assert RecordingDecisionEngine.modifierOnlyMinimumDuration == 0.3
 
@@ -250,9 +250,9 @@ if __name__ == "__main__":
     sys.path.insert(0, 'src')
 
     # Run a basic test
-    from hex.hotkeys.processor import HotKeyProcessor, State, Output
-    from hex.models.hotkey import HotKey, Modifier, Modifiers, Key
-    from hex.models.key_event import KeyEvent
+    from vox.hotkeys.processor import HotKeyProcessor, State, Output
+    from vox.models.hotkey import HotKey, Modifier, Modifiers, Key
+    from vox.models.key_event import KeyEvent
     from datetime import datetime
 
     print("test_initial_state...", end="")

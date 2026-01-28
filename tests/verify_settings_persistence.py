@@ -25,10 +25,10 @@ from typing import Any, Dict
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from hex.settings.manager import SettingsManager
-from hex.models.settings import HexSettings
-from hex.models.hotkey import HotKey, Key, Modifier, Modifiers
-from hex.models.word_processing import WordRemoval, WordRemapping
+from vox.settings.manager import SettingsManager
+from vox.models.settings import VoxSettings
+from vox.models.hotkey import HotKey, Key, Modifier, Modifiers
+from vox.models.word_processing import WordRemoval, WordRemapping
 
 # Color codes for output
 GREEN = "\033[92m"
@@ -120,7 +120,7 @@ async def test_hotkey_persistence(results: TestResults, temp_dir: Path):
             modifiers=Modifiers.from_list([Modifier.COMMAND, Modifier.SHIFT])
         )
 
-        settings1 = HexSettings(hotkey=custom_hotkey)
+        settings1 = VoxSettings(hotkey=custom_hotkey)
         await manager1.save(settings1)
 
         # Verify file was created
@@ -273,7 +273,7 @@ async def test_all_settings_persistence(results: TestResults, temp_dir: Path):
     try:
         manager1 = SettingsManager(config_dir=config_dir)
 
-        custom_settings = HexSettings(
+        custom_settings = VoxSettings(
             soundEffectsEnabled=False,
             soundEffectsVolume=0.5,
             hotkey=HotKey(key=Key.C, modifiers=Modifiers.from_list([Modifier.COMMAND])),
@@ -367,7 +367,7 @@ async def test_word_lists_persistence(results: TestResults, temp_dir: Path):
             WordRemapping(match="btw", replacement="by the way"),
         ]
 
-        settings = HexSettings(
+        settings = VoxSettings(
             wordRemovals=custom_word_removals,
             wordRemappings=custom_word_remappings
         )
@@ -498,7 +498,7 @@ async def test_atomic_writes(results: TestResults, temp_dir: Path):
     try:
         manager = SettingsManager(config_dir=config_dir)
 
-        settings = HexSettings(
+        settings = VoxSettings(
             hotkey=HotKey(key=Key.D, modifiers=Modifiers.from_list([Modifier.COMMAND]))
         )
 

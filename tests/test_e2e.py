@@ -26,19 +26,19 @@ sys.path.insert(0, 'src')
 try:
     import pytest
     from unittest.mock import AsyncMock
-    from hex.clients.clipboard import ClipboardClient
-    from hex.clients.recording import RecordingClient
-    from hex.clients.sound_effects import SoundEffectsClient
-    from hex.clients.transcript_persistence import TranscriptPersistenceClient
-    from hex.clients.transcription import TranscriptionClient
-    from hex.models.hotkey import HotKey, Modifier, Modifiers
-    from hex.models.settings import HexSettings
-    from hex.models.transcription import Transcript
-    from hex.models.word_processing import WordRemoval, WordRemapping
-    from hex.transcription.actions import Action
-    from hex.transcription.feature import TranscriptionFeature
-    from hex.hotkeys.processor import HotKeyProcessor, State, Output
-    from hex.models.key_event import KeyEvent
+    from vox.clients.clipboard import ClipboardClient
+    from vox.clients.recording import RecordingClient
+    from vox.clients.sound_effects import SoundEffectsClient
+    from vox.clients.transcript_persistence import TranscriptPersistenceClient
+    from vox.clients.transcription import TranscriptionClient
+    from vox.models.hotkey import HotKey, Modifier, Modifiers
+    from vox.models.settings import VoxSettings
+    from vox.models.transcription import Transcript
+    from vox.models.word_processing import WordRemoval, WordRemapping
+    from vox.transcription.actions import Action
+    from vox.transcription.feature import TranscriptionFeature
+    from vox.hotkeys.processor import HotKeyProcessor, State, Output
+    from vox.models.key_event import KeyEvent
     from datetime import datetime
     import asyncio
 
@@ -68,7 +68,7 @@ These tests verify the complete end-to-end flow of the Hex application.
 
 2. **Install Hex Python application:**
    ```bash
-   cd /path/to/hex-python
+   cd /path/to/vox-python
    pip install -e .
    ```
 
@@ -81,7 +81,7 @@ These tests verify the complete end-to-end flow of the Hex application.
 **Objective:** Verify hotkey → record → transcribe → paste flow works
 
 **Steps:**
-1. Launch the application: `python -m hex`
+1. Launch the application: `python -m vox`
 2. Open a text editor (TextEdit, VSCode, etc.)
 3. Press and hold the Option key
 4. Speak clearly: "Hello world this is a test"
@@ -197,7 +197,7 @@ These tests verify the complete end-to-end flow of the Hex application.
    - Click "Stop Recording" button
 3. Click OK to save
 4. Quit the application (right-click → Quit)
-5. Restart: `python -m hex`
+5. Restart: `python -m vox`
 6. Press Cmd+Shift+H
 7. Speak: "Test new hotkey"
 8. Release and wait for transcription
@@ -281,7 +281,7 @@ All manual tests pass if:
 **Recording doesn't start:**
 - Check Accessibility permissions (macOS)
 - Verify hotkey is not conflicting with other apps
-- Check logs: `tail -f ~/Library/Logs/hex/hex.log`
+- Check logs: `tail -f ~/Library/Logs/vox/vox.log`
 
 **Transcription fails:**
 - Verify Ollama is running: `ps aux | grep ollama`
@@ -306,11 +306,11 @@ if DEPS_AVAILABLE and pytest is not None:
         @pytest.mark.asyncio
         async def test_full_recording_flow_with_mocks(self):
             """Test complete flow from hotkey press to paste using mocks."""
-            from hex.clients.clipboard import ClipboardClient
-            from hex.clients.recording import RecordingClient
-            from hex.clients.sound_effects import SoundEffectsClient
-            from hex.clients.transcript_persistence import TranscriptPersistenceClient
-            from hex.clients.transcription import TranscriptionClient
+            from vox.clients.clipboard import ClipboardClient
+            from vox.clients.recording import RecordingClient
+            from vox.clients.sound_effects import SoundEffectsClient
+            from vox.clients.transcript_persistence import TranscriptPersistenceClient
+            from vox.clients.transcription import TranscriptionClient
 
             # Create mocks
             mock_recording = AsyncMock(spec=RecordingClient)
@@ -325,7 +325,7 @@ if DEPS_AVAILABLE and pytest is not None:
             mock_transcription.is_model_downloaded.return_value = True
 
             # Create feature with mocks
-            settings = HexSettings()
+            settings = VoxSettings()
             feature = TranscriptionFeature(
                 settings=settings,
                 recording_client=mock_recording,
@@ -433,11 +433,11 @@ if __name__ == "__main__":
 
     try:
         # Test basic imports and object creation
-        from hex.transcription.feature import TranscriptionFeature
-        from hex.models.settings import HexSettings
-        from hex.transcription.actions import Action
+        from vox.transcription.feature import TranscriptionFeature
+        from vox.models.settings import VoxSettings
+        from vox.transcription.actions import Action
 
-        settings = HexSettings()
+        settings = VoxSettings()
         feature = TranscriptionFeature(settings=settings)
 
         print("✓ TranscriptionFeature created")

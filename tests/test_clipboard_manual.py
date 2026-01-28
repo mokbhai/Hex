@@ -6,7 +6,7 @@ import asyncio
 
 sys.path.insert(0, "src")
 
-from hex.clients.clipboard import ClipboardClient, PasteboardSnapshot
+from vox.clients.clipboard import ClipboardClient, PasteboardSnapshot
 
 
 async def main():

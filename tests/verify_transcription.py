@@ -16,7 +16,7 @@ def verify_imports():
     """Verify that all imports work correctly."""
     print("✓ Testing imports...")
     try:
-        from hex.clients.transcription import (
+        from vox.clients.transcription import (
             TranscriptionClient,
             TranscriptionError,
             OllamaConnectionError,
@@ -34,7 +34,7 @@ def verify_imports():
 def verify_client_structure():
     """Verify that TranscriptionClient has all required methods."""
     print("\n✓ Testing client structure...")
-    from hex.clients.transcription import TranscriptionClient
+    from vox.clients.transcription import TranscriptionClient
 
     required_methods = [
         "transcribe",
@@ -58,7 +58,7 @@ def verify_client_structure():
 def verify_client_initialization():
     """Verify that TranscriptionClient can be instantiated."""
     print("\n✓ Testing client initialization...")
-    from hex.clients.transcription import TranscriptionClient
+    from vox.clients.transcription import TranscriptionClient
 
     try:
         client = TranscriptionClient(
@@ -80,7 +80,7 @@ def verify_client_initialization():
 def verify_progress_dataclass():
     """Verify that TranscriptionProgress works correctly."""
     print("\n✓ Testing TranscriptionProgress...")
-    from hex.clients.transcription import TranscriptionProgress
+    from vox.clients.transcription import TranscriptionProgress
 
     try:
         progress = TranscriptionProgress(current=50, total=100, message="Half done")
@@ -103,7 +103,7 @@ def verify_progress_dataclass():
 def verify_decoding_options():
     """Verify that DecodingOptions enum exists."""
     print("\n✓ Testing DecodingOptions...")
-    from hex.clients.transcription import DecodingOptions
+    from vox.clients.transcription import DecodingOptions
 
     try:
         assert hasattr(DecodingOptions, "DEFAULT")
@@ -117,7 +117,7 @@ def verify_decoding_options():
 def verify_exceptions():
     """Verify that custom exceptions exist."""
     print("\n✓ Testing custom exceptions...")
-    from hex.clients.transcription import (
+    from vox.clients.transcription import (
         TranscriptionError,
         OllamaConnectionError,
         ModelNotFoundError,
@@ -151,7 +151,7 @@ def verify_api_endpoint():
     """Verify that the correct API endpoint is used."""
     print("\n✓ Testing API endpoint...")
     import inspect
-    from hex.clients.transcription import TranscriptionClient
+    from vox.clients.transcription import TranscriptionClient
 
     try:
         # Get the source code of _transcribe_with_ollama

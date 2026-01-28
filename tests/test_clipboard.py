@@ -3,7 +3,7 @@
 import asyncio
 import pytest
 
-from hex.clients.clipboard import ClipboardClient, PasteboardSnapshot
+from vox.clients.clipboard import ClipboardClient, PasteboardSnapshot
 
 
 @pytest.mark.asyncio

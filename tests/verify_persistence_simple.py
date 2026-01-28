@@ -10,7 +10,7 @@ def test_methods_exist():
     print("Testing TranscriptPersistenceClient methods...")
 
     # Read the source file
-    source_file = Path(__file__).parent.parent / "src" / "hex" / "clients" / "transcript_persistence.py"
+    source_file = Path(__file__).parent.parent / "src" / "vox" / "clients" / "transcript_persistence.py"
     source_code = source_file.read_text()
 
     # Check for required methods
@@ -31,7 +31,7 @@ def test_methods_exist():
     # Check for imports
     required_imports = [
         "import json",
-        "from hex.models.transcription import Transcript, TranscriptionHistory",
+        "from vox.models.transcription import Transcript, TranscriptionHistory",
     ]
 
     for imp in required_imports:

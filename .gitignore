@@ -68,3 +68,4 @@ env/
 
 # Auto Claude data directory
 .auto-claude/
+coverage.xml

@@ -18,14 +18,14 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from datetime import datetime, timedelta
-from hex.models.hotkey import HotKey, Modifier, Modifiers, Key
-from hex.hotkeys.decision_engine import (
+from vox.models.hotkey import HotKey, Modifier, Modifiers, Key
+from vox.hotkeys.decision_engine import (
     RecordingDecisionEngine,
     Decision,
     Context,
-    HexCoreConstants
+    VoxCoreConstants
 )
-from hex.transcription.actions import Action
+from vox.transcription.actions import Action
 
 # Color codes for output
 GREEN = "\033[92m"
@@ -199,7 +199,7 @@ def part2_discard_action_handler():
     # Test 2: Check _handle_discard method exists
     print_test("_handle_discard method exists in TranscriptionFeature")
     try:
-        from hex.transcription.feature import TranscriptionFeature
+        from vox.transcription.feature import TranscriptionFeature
         if hasattr(TranscriptionFeature, '_handle_discard'):
             print_pass("_handle_discard method found")
             tests_passed += 1
@@ -212,7 +212,7 @@ def part2_discard_action_handler():
         # Check source file directly
         import ast
         try:
-            with open('src/hex/transcription/feature.py', 'r') as f:
+            with open('src/vox/transcription/feature.py', 'r') as f:
                 tree = ast.parse(f.read())
                 methods = [node.name for node in ast.walk(tree)
                           if isinstance(node, ast.AsyncFunctionDef) or isinstance(node, ast.FunctionDef)]
@@ -232,7 +232,7 @@ def part2_discard_action_handler():
     # Test 3: Verify _handle_discard signature
     print_test("_handle_discard has correct async signature")
     try:
-        from hex.transcription.feature import TranscriptionFeature
+        from vox.transcription.feature import TranscriptionFeature
         import inspect
         method = getattr(TranscriptionFeature, '_handle_discard')
         if inspect.iscoroutinefunction(method):
@@ -246,7 +246,7 @@ def part2_discard_action_handler():
         print_info("Checking source file for async def _handle_discard...")
         import ast
         try:
-            with open('src/hex/transcription/feature.py', 'r') as f:
+            with open('src/vox/transcription/feature.py', 'r') as f:
                 tree = ast.parse(f.read())
                 for node in ast.walk(tree):
                     if isinstance(node, ast.AsyncFunctionDef) and node.name == '_handle_discard':
@@ -266,7 +266,7 @@ def part2_discard_action_handler():
     # Test 4: Check method docstring mentions silent behavior
     print_test("_handle_discard docstring mentions silent discard")
     try:
-        from hex.transcription.feature import TranscriptionFeature
+        from vox.transcription.feature import TranscriptionFeature
         method = getattr(TranscriptionFeature, '_handle_discard')
         docstring = method.__doc__
         if docstring and ('silent' in docstring.lower() or 'no sound' in docstring.lower()):
@@ -279,7 +279,7 @@ def part2_discard_action_handler():
         print_info(f"Cannot import TranscriptionFeature (missing dependency): {e}")
         print_info("Checking source file for docstring...")
         try:
-            with open('src/hex/transcription/feature.py', 'r') as f:
+            with open('src/vox/transcription/feature.py', 'r') as f:
                 content = f.read()
                 # Find _handle_discard and check docstring
                 if 'silent' in content.lower() and 'discard' in content.lower():
@@ -301,28 +301,28 @@ def part2_discard_action_handler():
 # Test Part 3: Constants Verification
 def part3_constants_verification():
     """Verify that modifierOnlyMinimumDuration constant is correct."""
-    print_section("Part 3: HexCoreConstants - Modifier-Only Threshold")
+    print_section("Part 3: VoxCoreConstants - Modifier-Only Threshold")
 
     tests_passed = 0
     tests_failed = 0
 
     # Test 1: Verify modifierOnlyMinimumDuration is 0.3
     print_test("modifierOnlyMinimumDuration is 0.3 seconds")
-    if HexCoreConstants.modifierOnlyMinimumDuration == 0.3:
-        print_pass(f"Correct: {HexCoreConstants.modifierOnlyMinimumDuration}s")
+    if VoxCoreConstants.modifierOnlyMinimumDuration == 0.3:
+        print_pass(f"Correct: {VoxCoreConstants.modifierOnlyMinimumDuration}s")
         tests_passed += 1
     else:
-        print_fail(f"Expected 0.3s, got {HexCoreConstants.modifierOnlyMinimumDuration}s")
+        print_fail(f"Expected 0.3s, got {VoxCoreConstants.modifierOnlyMinimumDuration}s")
         tests_failed += 1
 
     # Test 2: Verify RecordingDecisionEngine uses the constant
     print_test("RecordingDecisionEngine.modifierOnlyMinimumDuration uses constant")
     engine = RecordingDecisionEngine()
-    if engine.modifierOnlyMinimumDuration == HexCoreConstants.modifierOnlyMinimumDuration:
-        print_pass("Engine correctly uses HexCoreConstants")
+    if engine.modifierOnlyMinimumDuration == VoxCoreConstants.modifierOnlyMinimumDuration:
+        print_pass("Engine correctly uses VoxCoreConstants")
         tests_passed += 1
     else:
-        print_fail(f"Engine has {engine.modifierOnlyMinimumDuration}s, expected {HexCoreConstants.modifierOnlyMinimumDuration}s")
+        print_fail(f"Engine has {engine.modifierOnlyMinimumDuration}s, expected {VoxCoreConstants.modifierOnlyMinimumDuration}s")
         tests_failed += 1
 
     print(f"\n{BLUE}Part 3 Results:{RESET} {GREEN}{tests_passed} passed{RESET}, {RED}{tests_failed} failed{RESET}")

@@ -5,9 +5,9 @@ import sys
 sys.path.insert(0, 'src')
 
 from datetime import datetime, timedelta
-from hex.hotkeys.processor import HotKeyProcessor, State, Output
-from hex.models.hotkey import HotKey, Modifier, Modifiers, Key
-from hex.models.key_event import KeyEvent
+from vox.hotkeys.processor import HotKeyProcessor, State, Output
+from vox.models.hotkey import HotKey, Modifier, Modifiers, Key
+from vox.models.key_event import KeyEvent
 
 
 def test_simple_double_tap():
