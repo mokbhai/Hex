@@ -181,14 +181,16 @@ async function exportApp(archivePath: string): Promise<string> {
   step("Exporting app...");
 
   const exportOptionsPath = join(projectRoot, "build/ExportOptions.plist");
+  const signingMethod = process.env.SIGNING_METHOD || "development"; // "development" or "developer-id"
+
   const exportOptions = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>developer-id</string>
-    <key>teamID</key>
-    <string>${process.env.TEAM_ID || "QC99C9JE59"}</string>
+    <string>${signingMethod}</string>
+    ${process.env.TEAM_ID ? `<key>teamID</key>
+    <string>${process.env.TEAM_ID}</string>` : ""}
 </dict>
 </plist>`;
 
@@ -198,12 +200,19 @@ async function exportApp(archivePath: string): Promise<string> {
   await $`xcodebuild -exportArchive -archivePath ${archivePath} -exportPath ${exportPath} -exportOptionsPlist ${exportOptionsPath}`.quiet();
 
   const appPath = join(exportPath, "Hex.app");
-  success("App exported");
+  success(`App exported (${signingMethod} signing)`);
   return appPath;
 }
 
-// Notarize the app
+// Notarize the app (skipped for development signing)
 async function notarizeApp(appPath: string): Promise<void> {
+  const signingMethod = process.env.SIGNING_METHOD || "development";
+
+  if (signingMethod === "development") {
+    info("Skipping notarization (development signing)");
+    return;
+  }
+
   step("Notarizing app...");
 
   const zipPath = join(projectRoot, "build/Hex-notarize.zip");
@@ -230,6 +239,7 @@ async function createDmg(appPath: string, version: string): Promise<string> {
   await $`mkdir -p ${updatesDir}`.quiet();
 
   const dmgPath = join(updatesDir, `Hex-${version}.dmg`);
+  const signingMethod = process.env.SIGNING_METHOD || "development";
 
   // Create DMG with create-dmg if available, otherwise use hdiutil
   try {
@@ -239,17 +249,21 @@ async function createDmg(appPath: string, version: string): Promise<string> {
     await $`hdiutil create -volname "Hex" -srcfolder ${appPath} -ov -format UDZO ${dmgPath}`.quiet();
   }
 
-  // Sign the DMG
-  await $`codesign --force --sign "Developer ID Application" ${dmgPath}`.quiet();
+  if (signingMethod === "developer-id") {
+    // Sign the DMG
+    await $`codesign --force --sign "Developer ID Application" ${dmgPath}`.quiet();
 
-  // Notarize the DMG
-  if (process.env.GITHUB_ACTIONS) {
-    await $`xcrun notarytool submit ${dmgPath} --apple-id ${process.env.APPLE_ID} --password ${process.env.APPLE_ID_PASSWORD} --team-id ${process.env.TEAM_ID} --wait`.quiet();
+    // Notarize the DMG
+    if (process.env.GITHUB_ACTIONS) {
+      await $`xcrun notarytool submit ${dmgPath} --apple-id ${process.env.APPLE_ID} --password ${process.env.APPLE_ID_PASSWORD} --team-id ${process.env.TEAM_ID} --wait`.quiet();
+    } else {
+      await $`xcrun notarytool submit ${dmgPath} --keychain-profile "AC_PASSWORD" --wait`.quiet();
+    }
+
+    await $`xcrun stapler staple ${dmgPath}`.quiet();
   } else {
-    await $`xcrun notarytool submit ${dmgPath} --keychain-profile "AC_PASSWORD" --wait`.quiet();
+    info("Skipping DMG signing/notarization (development signing)");
   }
-
-  await $`xcrun stapler staple ${dmgPath}`.quiet();
 
   // Create latest symlink
   const latestDmgPath = join(updatesDir, "hex-latest.dmg");
@@ -384,23 +398,30 @@ async function release(): Promise<void> {
   await checkCleanWorkingTree();
 
   // Check for changesets
-  step("Checking for changesets...");
-  const hasChangesets = await checkChangesets();
+  const skipChangeset = process.env.SKIP_CHANGESET === "true" || process.argv.includes("--skip-changeset");
 
-  if (!hasChangesets) {
-    warn("No changesets found.");
-    info("Create one with: bun run changeset:add-ai patch \"Your summary\"");
+  if (!skipChangeset) {
+    step("Checking for changesets...");
+    const hasChangesets = await checkChangesets();
 
-    const response = prompt("Continue with manual version bump? (y/N) ");
-    if (response?.toLowerCase() !== "y") {
-      log("Aborting release.");
-      process.exit(0);
+    if (!hasChangesets) {
+      warn("No changesets found.");
+      info("Create one with: bun run changeset:add-ai patch \"Your summary\"");
+      info("Or run with SKIP_CHANGESET=true to skip this check");
+
+      const response = prompt("Continue with manual version bump? (y/N) ");
+      if (response?.toLowerCase() !== "y") {
+        log("Aborting release.");
+        process.exit(0);
+      }
+    } else {
+      // Apply changesets
+      step("Applying changesets...");
+      await $`bun run changeset version`.quiet();
+      success("Changesets applied");
     }
   } else {
-    // Apply changesets
-    step("Applying changesets...");
-    await $`bun run changeset version`.quiet();
-    success("Changesets applied");
+    info("Skipping changeset check");
   }
 
   // Get version

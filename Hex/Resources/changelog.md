@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0
+
+### Minor Changes
+
+- 64c0a57: Add LLM-based transcription refinement feature with configurable hotkey and model settings
+
 ## 0.6.9
 
 ### Patch Changes
