@@ -180,24 +180,29 @@ async function buildApp(): Promise<string> {
 async function exportApp(archivePath: string): Promise<string> {
   step("Exporting app...");
 
-  const exportOptionsPath = join(projectRoot, "build/ExportOptions.plist");
-  // "debugging" for personal use, "developer-id" for distribution
-  const signingMethod = process.env.SIGNING_METHOD || "debugging";
-  const teamId = process.env.TEAM_ID;
+  const signingMethod = process.env.SIGNING_METHOD || "personal";
+  const exportPath = join(projectRoot, "build/export");
+  await $`mkdir -p ${exportPath}`.quiet();
 
-  if (!teamId && signingMethod === "debugging") {
-    error("TEAM_ID is required for development signing");
-    info("Find your team ID: security find-identity -v -p codesigning");
-    info("Add to .env: TEAM_ID=XXXXXXXXXX");
-    process.exit(1);
+  if (signingMethod === "personal") {
+    // For personal use, just copy the app from archive (already signed during build)
+    const archiveAppPath = join(archivePath, "Products/Applications/Hex.app");
+    const appPath = join(exportPath, "Hex.app");
+    await $`cp -R ${archiveAppPath} ${appPath}`.quiet();
+    success("App exported (personal/development signing)");
+    return appPath;
   }
+
+  // For developer-id distribution, use xcodebuild export
+  const exportOptionsPath = join(projectRoot, "build/ExportOptions.plist");
+  const teamId = process.env.TEAM_ID;
 
   const exportOptions = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>${signingMethod}</string>
+    <string>developer-id</string>
     <key>teamID</key>
     <string>${teamId}</string>
     <key>signingStyle</key>
@@ -206,8 +211,6 @@ async function exportApp(archivePath: string): Promise<string> {
 </plist>`;
 
   writeFileSync(exportOptionsPath, exportOptions);
-
-  const exportPath = join(projectRoot, "build/export");
   await $`xcodebuild -exportArchive -archivePath ${archivePath} -exportPath ${exportPath} -exportOptionsPlist ${exportOptionsPath}`.quiet();
 
   const appPath = join(exportPath, "Hex.app");
@@ -219,7 +222,7 @@ async function exportApp(archivePath: string): Promise<string> {
 async function notarizeApp(appPath: string): Promise<void> {
   const signingMethod = process.env.SIGNING_METHOD || "development";
 
-  if (signingMethod === "debugging") {
+  if (signingMethod === "personal") {
     info("Skipping notarization (development signing)");
     return;
   }
