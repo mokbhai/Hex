@@ -220,7 +220,7 @@ async function exportApp(archivePath: string): Promise<string> {
 
 // Notarize the app (skipped for development signing)
 async function notarizeApp(appPath: string): Promise<void> {
-  const signingMethod = process.env.SIGNING_METHOD || "development";
+  const signingMethod = process.env.SIGNING_METHOD || "personal";
 
   if (signingMethod === "personal") {
     info("Skipping notarization (development signing)");
@@ -253,7 +253,7 @@ async function createDmg(appPath: string, version: string): Promise<string> {
   await $`mkdir -p ${updatesDir}`.quiet();
 
   const dmgPath = join(updatesDir, `Hex-${version}.dmg`);
-  const signingMethod = process.env.SIGNING_METHOD || "development";
+  const signingMethod = process.env.SIGNING_METHOD || "personal";
 
   // Create DMG with create-dmg if available, otherwise use hdiutil
   try {
