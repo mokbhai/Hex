@@ -21,6 +21,7 @@ import { config } from "dotenv";
 import { resolve, join } from "path";
 import { existsSync, readFileSync, writeFileSync, readdirSync } from "fs";
 import { $ } from "bun";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 // Load .env from project root
 const projectRoot = resolve(import.meta.dir, "../..");
@@ -322,36 +323,62 @@ async function generateAppcast(): Promise<void> {
   }
 }
 
-// Upload to S3
+// Upload to S3 using AWS SDK
 async function uploadToS3(version: string): Promise<void> {
   step("Uploading to S3...");
 
   const updatesDir = join(projectRoot, "updates");
   const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET || "hex-updates";
   const endpoint = process.env.AWS_ENDPOINT;
-
   const region = process.env.AWS_REGION || "us-east-1";
   const forcePathStyle = process.env.AWS_FORCE_PATH_STYLE === "true";
 
-  // Build extra args for aws cli
-  const extraArgs: string[] = [];
-  if (endpoint) extraArgs.push("--endpoint-url", endpoint);
-  if (region) extraArgs.push("--region", region);
-  if (forcePathStyle) extraArgs.push("--no-verify-ssl"); // Path style often used with self-hosted
+  // Create S3 client
+  const s3Client = new S3Client({
+    region,
+    endpoint,
+    forcePathStyle,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  });
+
+  // Helper function to upload a file
+  async function uploadFile(localPath: string, key: string): Promise<void> {
+    const fileContent = readFileSync(localPath);
+    const contentType = key.endsWith(".dmg")
+      ? "application/octet-stream"
+      : key.endsWith(".zip")
+        ? "application/zip"
+        : key.endsWith(".xml")
+          ? "application/xml"
+          : "application/octet-stream";
+
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: fileContent,
+        ContentType: contentType,
+      })
+    );
+    info(`  Uploaded: ${key}`);
+  }
 
   // Upload versioned DMG
-  await $`aws s3 cp ${join(updatesDir, `Hex-${version}.dmg`)} s3://${bucket}/Hex-${version}.dmg --acl public-read ${extraArgs}`.quiet();
+  await uploadFile(join(updatesDir, `Hex-${version}.dmg`), `Hex-${version}.dmg`);
 
   // Upload latest DMG
-  await $`aws s3 cp ${join(updatesDir, "hex-latest.dmg")} s3://${bucket}/hex-latest.dmg --acl public-read ${extraArgs}`.quiet();
+  await uploadFile(join(updatesDir, "hex-latest.dmg"), "hex-latest.dmg");
 
   // Upload ZIP
-  await $`aws s3 cp ${join(updatesDir, `Hex-${version}.zip`)} s3://${bucket}/Hex-${version}.zip --acl public-read ${extraArgs}`.quiet();
+  await uploadFile(join(updatesDir, `Hex-${version}.zip`), `Hex-${version}.zip`);
 
-  // Upload appcast
+  // Upload appcast if exists
   const appcastPath = join(updatesDir, "appcast.xml");
   if (existsSync(appcastPath)) {
-    await $`aws s3 cp ${appcastPath} s3://${bucket}/appcast.xml --acl public-read ${extraArgs}`.quiet();
+    await uploadFile(appcastPath, "appcast.xml");
   }
 
   success(`Uploaded to S3${endpoint ? ` (${endpoint})` : ""}`);
