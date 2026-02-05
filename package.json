@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "release": "cd tools && bun run build",
+    "release": "bun run tools/src/cli.ts release",
     "changeset": "changeset",
     "changeset:add": "changeset",
     "changeset:add-ai": "bun run tools/scripts/add-changeset.ts",
@@ -14,7 +14,14 @@
     "changeset:version": "changeset version",
     "sync-changelog": "bun run tools/scripts/sync-changelog.ts"
   },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "@aws-sdk/client-s3": "^3.700.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.1.0"
+  },
   "devDependencies": {
-    "@changesets/cli": "^2.29.8"
+    "@changesets/cli": "^2.29.8",
+    "@types/bun": "latest"
   }
 }
