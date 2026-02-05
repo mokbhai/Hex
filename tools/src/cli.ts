@@ -181,7 +181,16 @@ async function exportApp(archivePath: string): Promise<string> {
   step("Exporting app...");
 
   const exportOptionsPath = join(projectRoot, "build/ExportOptions.plist");
-  const signingMethod = process.env.SIGNING_METHOD || "development"; // "development" or "developer-id"
+  // "debugging" for personal use, "developer-id" for distribution
+  const signingMethod = process.env.SIGNING_METHOD || "debugging";
+  const teamId = process.env.TEAM_ID;
+
+  if (!teamId && signingMethod === "debugging") {
+    error("TEAM_ID is required for development signing");
+    info("Find your team ID: security find-identity -v -p codesigning");
+    info("Add to .env: TEAM_ID=XXXXXXXXXX");
+    process.exit(1);
+  }
 
   const exportOptions = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -189,8 +198,10 @@ async function exportApp(archivePath: string): Promise<string> {
 <dict>
     <key>method</key>
     <string>${signingMethod}</string>
-    ${process.env.TEAM_ID ? `<key>teamID</key>
-    <string>${process.env.TEAM_ID}</string>` : ""}
+    <key>teamID</key>
+    <string>${teamId}</string>
+    <key>signingStyle</key>
+    <string>automatic</string>
 </dict>
 </plist>`;
 
@@ -208,7 +219,7 @@ async function exportApp(archivePath: string): Promise<string> {
 async function notarizeApp(appPath: string): Promise<void> {
   const signingMethod = process.env.SIGNING_METHOD || "development";
 
-  if (signingMethod === "development") {
+  if (signingMethod === "debugging") {
     info("Skipping notarization (development signing)");
     return;
   }
