@@ -17,6 +17,9 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "•" : {
       "shouldTranslate" : false
     },
@@ -67,9 +70,6 @@
     "Add Removal" : {
 
     },
-    "Advanced" : {
-
-    },
     "Are you sure you want to delete all transcripts? This action cannot be undone." : {
       "comment" : "Delete transcript history confirm",
       "localizations" : {
@@ -85,6 +85,9 @@
 
     },
     "Audio Behavior while Recording" : {
+
+    },
+    "Auto-refine transcriptions" : {
 
     },
     "Become a Sponsor" : {
@@ -145,6 +148,9 @@
           }
         }
       }
+    },
+    "Clear" : {
+
     },
     "Clear shortcut" : {
 
@@ -282,6 +288,9 @@
     "Enable in Settings" : {
 
     },
+    "Enable refinement" : {
+
+    },
     "Enable Word Removals" : {
 
     },
@@ -307,12 +316,6 @@
           }
         }
       }
-    },
-    "Export Logs" : {
-
-    },
-    "Exporting Logs…" : {
-
     },
     "General" : {
       "comment" : "General section in Settings Header.",
@@ -376,6 +379,9 @@
         }
       }
     },
+    "Hugging Face model id (e.g. mlx-community/phi-3-mini-4k-instruct)" : {
+
+    },
     "Ignore below %.1fs" : {
       "localizations" : {
         "de" : {
@@ -393,6 +399,9 @@
 
     },
     "Match" : {
+
+    },
+    "Max tokens" : {
 
     },
     "Maximum History Entries" : {
@@ -414,6 +423,9 @@
 
     },
     "Model prewarming..." : {
+
+    },
+    "Models download to Library/Application Support/com.kitlangton.Hex/models/llm." : {
 
     },
     "Modification Type" : {
@@ -528,6 +540,9 @@
         }
       }
     },
+    "Press the hotkey to capture the current selection and refine it locally." : {
+
+    },
     "Prevent System Sleep while Recording" : {
       "comment" : "Label for general setting whether to prevent system sleep while recording.",
       "localizations" : {
@@ -543,6 +558,15 @@
 
     },
     "Quit" : {
+
+    },
+    "Refinement" : {
+
+    },
+    "Refinement hotkey" : {
+
+    },
+    "Refinement model" : {
 
     },
     "Refresh available input devices" : {
@@ -575,16 +599,13 @@
         }
       }
     },
+    "Runs the selected text through a local LLM and replaces it in-place." : {
+
+    },
     "Save Transcription History" : {
 
     },
     "Save transcriptions and audio recordings for later access" : {
-
-    },
-    "Saved to %@" : {
-
-    },
-    "Saves the last 30 minutes of Hex diagnostics so you can share them with support." : {
 
     },
     "Say something…" : {
@@ -607,6 +628,9 @@
           }
         }
       }
+    },
+    "Set hotkey" : {
+
     },
     "Settings" : {
       "comment" : "title for settings view.",
@@ -697,6 +721,12 @@
       }
     },
     "Support the developer" : {
+
+    },
+    "Temperature" : {
+
+    },
+    "Top-p" : {
 
     },
     "Transcript Modifications" : {

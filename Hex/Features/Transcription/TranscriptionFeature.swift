@@ -21,6 +21,7 @@ struct TranscriptionFeature {
   struct State {
     var isRecording: Bool = false
     var isTranscribing: Bool = false
+    var isRefining: Bool = false
     var isPrewarming: Bool = false
     var error: String?
     var recordingStartTime: Date?
@@ -51,6 +52,7 @@ struct TranscriptionFeature {
 
     // Transcription result flow
     case transcriptionResult(String, URL)
+    case refinementCompleted(String, URL)
     case transcriptionError(Error, URL?)
 
     // Model availability
@@ -60,6 +62,7 @@ struct TranscriptionFeature {
   enum CancelID {
     case metering
     case transcription
+    case refinement
   }
 
   @Dependency(\.transcription) var transcription
@@ -70,6 +73,7 @@ struct TranscriptionFeature {
   @Dependency(\.sleepManagement) var sleepManagement
   @Dependency(\.date.now) var now
   @Dependency(\.transcriptPersistence) var transcriptPersistence
+  @Dependency(\.refinement) var refinement
 
   var body: some ReducerOf<Self> {
     Reduce { state, action in
@@ -117,6 +121,12 @@ struct TranscriptionFeature {
 
       case let .transcriptionResult(result, audioURL):
         return handleTranscriptionResult(&state, result: result, audioURL: audioURL)
+
+      case let .refinementCompleted(refined, audioURL):
+        state.isRefining = false
+        state.isTranscribing = false
+        state.isPrewarming = false
+        return finalizeTranscript(&state, text: refined, audioURL: audioURL)
 
       case let .transcriptionError(error, audioURL):
         return handleTranscriptionError(&state, error: error, audioURL: audioURL)
@@ -388,6 +398,7 @@ private extension TranscriptionFeature {
   ) -> Effect<Action> {
     state.isTranscribing = false
     state.isPrewarming = false
+    state.isRefining = false
 
     // Check for force quit command (emergency escape hatch)
     if ForceQuitCommandDetector.matches(result) {
@@ -404,10 +415,8 @@ private extension TranscriptionFeature {
     guard !result.isEmpty else {
       return .none
     }
-
-    let duration = state.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0
-
     transcriptionFeatureLogger.info("Raw transcription: '\(result)'")
+
     let remappings = state.hexSettings.wordRemappings
     let removalsEnabled = state.hexSettings.wordRemovalsEnabled
     let removals = state.hexSettings.wordRemovals
@@ -436,6 +445,56 @@ private extension TranscriptionFeature {
       return .none
     }
 
+    let shouldAutoRefine = state.hexSettings.autoRefineTranscriptions && state.hexSettings.refinementEnabled
+    if shouldAutoRefine {
+      state.isRefining = true
+      state.isTranscribing = true // Keep indicator visible during refinement
+      let parameters = RefinementParameters(
+        temperature: state.hexSettings.refinementTemperature,
+        topP: state.hexSettings.refinementTopP,
+        maxTokens: state.hexSettings.refinementMaxTokens
+      )
+      let modelIdentifier = state.hexSettings.refinementModelIdentifier ?? HexSettings().refinementModelIdentifier ?? ""
+
+      return .run { send in
+        do {
+          let refined = try await refinement.refine(modifiedResult, modelIdentifier, parameters)
+          await send(.refinementCompleted(refined, audioURL))
+        } catch {
+          await send(.transcriptionError(error, audioURL))
+        }
+      }
+      .cancellable(id: CancelID.refinement, cancelInFlight: true)
+    }
+
+    return finalizeTranscript(&state, text: modifiedResult, audioURL: audioURL)
+  }
+
+  func handleTranscriptionError(
+    _ state: inout State,
+    error: Error,
+    audioURL: URL?
+  ) -> Effect<Action> {
+    state.isTranscribing = false
+    state.isPrewarming = false
+    state.isRefining = false
+    state.error = error.localizedDescription
+    
+    if let audioURL {
+      try? FileManager.default.removeItem(at: audioURL)
+    }
+
+    return .none
+  }
+
+  func finalizeTranscript(
+    _ state: inout State,
+    text: String,
+    audioURL: URL
+  ) -> Effect<Action> {
+    let duration = state.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0
+    transcriptionFeatureLogger.info("Final transcription output: '\(text)'")
+
     let sourceAppBundleID = state.sourceAppBundleID
     let sourceAppName = state.sourceAppName
     let transcriptionHistory = state.$transcriptionHistory
@@ -443,7 +502,7 @@ private extension TranscriptionFeature {
     return .run { send in
       do {
         try await finalizeRecordingAndStoreTranscript(
-          result: modifiedResult,
+          result: text,
           duration: duration,
           sourceAppBundleID: sourceAppBundleID,
           sourceAppName: sourceAppName,
@@ -455,22 +514,6 @@ private extension TranscriptionFeature {
       }
     }
     .cancellable(id: CancelID.transcription)
-  }
-
-  func handleTranscriptionError(
-    _ state: inout State,
-    error: Error,
-    audioURL: URL?
-  ) -> Effect<Action> {
-    state.isTranscribing = false
-    state.isPrewarming = false
-    state.error = error.localizedDescription
-    
-    if let audioURL {
-      try? FileManager.default.removeItem(at: audioURL)
-    }
-
-    return .none
   }
 
   /// Move file to permanent location, create a transcript record, paste text, and play sound.
@@ -522,9 +565,11 @@ private extension TranscriptionFeature {
     state.isTranscribing = false
     state.isRecording = false
     state.isPrewarming = false
+    state.isRefining = false
 
     return .merge(
       .cancel(id: CancelID.transcription),
+      .cancel(id: CancelID.refinement),
       .run { [sleepManagement] _ in
         // Allow system to sleep again
         await sleepManagement.allowSleep()
@@ -539,6 +584,7 @@ private extension TranscriptionFeature {
   func handleDiscard(_ state: inout State) -> Effect<Action> {
     state.isRecording = false
     state.isPrewarming = false
+    state.isRefining = false
 
     // Silently discard - no sound effect
     return .run { [sleepManagement] _ in
@@ -557,7 +603,9 @@ struct TranscriptionView: View {
   @ObserveInjection var inject
 
   var status: TranscriptionIndicatorView.Status {
-    if store.isTranscribing {
+    if store.isRefining {
+      return .transcribing
+    } else if store.isTranscribing {
       return .transcribing
     } else if store.isRecording {
       return .recording
