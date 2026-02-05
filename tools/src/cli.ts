@@ -302,6 +302,13 @@ async function createZip(appPath: string, version: string): Promise<string> {
 
 // Generate Sparkle appcast
 async function generateAppcast(): Promise<void> {
+  const signingMethod = process.env.SIGNING_METHOD || "personal";
+
+  if (signingMethod === "personal") {
+    info("Skipping appcast generation (personal signing)");
+    return;
+  }
+
   step("Generating Sparkle appcast...");
 
   const updatesDir = join(projectRoot, "updates");
