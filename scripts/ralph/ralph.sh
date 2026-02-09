@@ -135,7 +135,7 @@ git -C "$PROJECT_ROOT" pull --rebase 2>/dev/null || true
 
 # Count remaining tasks
 REMAINING=$(jq '[.userStories[] | select(.passes == false)] | length' "$PRD_FILE")
-COMPLETED=$(jq '[.userStories[] | select(.passes == true)] | length'')
+COMPLETED=$(jq '[.userStories[] | select(.passes == true)] | length' "$PRD_FILE")
 TOTAL=$(jq '.userStories | length' "$PRD_FILE")
 
 echo ""
