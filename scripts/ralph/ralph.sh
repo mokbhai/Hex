@@ -158,7 +158,15 @@ for i in $(seq 1 $MAX_ITERATIONS); do
 
     # Run Claude Code with the ralph prompt
     cd "$PROJECT_ROOT"
-    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1 | tee /dev/stderr) || true
+
+    # Show current task being worked on
+    CURRENT_TASK=$(jq -r '[.userStories[] | select(.passes == false)] | sort_by(.priority) | .[0] | "\(.id) - \(.title)"' "$PRD_FILE" 2>/dev/null || echo "Unknown task")
+    echo -e "${YELLOW}  Current task: $CURRENT_TASK${NC}"
+    echo ""
+
+    # Run Claude and capture output while showing it in real-time
+    OUTPUT=$(claude --dangerously-skip-permissions --print < "$SCRIPT_DIR/CLAUDE.md" 2>&1) || true
+    echo "$OUTPUT"
 
     # Check for completion signal
     if echo "$OUTPUT" | grep -q "<promise>COMPLETE</promise>"; then
