@@ -2,6 +2,37 @@
 # This file tracks learnings across iterations for autonomous AI development
 
 ## Codebase Patterns
-# Add reusable patterns here as they are discovered
+- Tauri 2.0 projects use create-tauri-app with template react-ts
+- TypeScript strict mode is enabled by default in Tauri React templates
+- Vite is the default build tool for Tauri 2.0 frontend
+- Tauri commands are registered in src-tauri/src/lib.rs with #[tauri::command]
+- All Tauri frontend code goes in src/ directory
+- All Rust backend code goes in src-tauri/src/ directory
+
+---
+
+## 2025-02-09 - E1-1 - Initialize Tauri 2.0 project with React + TypeScript
+
+**What was implemented:**
+- Created Tauri 2.0 project with React + TypeScript using create-tauri-app
+- Configured TypeScript with strict mode (already enabled by template)
+- Set up Vite as build tool for frontend
+- Initialized Rust backend with Tauri dependencies
+- Configured basic macOS app structure
+
+**Files changed:**
+- package.json, tsconfig.json, vite.config.ts - Frontend build configuration
+- src-tauri/Cargo.toml, src-tauri/build.rs - Rust build configuration
+- src-tauri/tauri.conf.json - Tauri app configuration
+- src-tauri/src/main.rs, src-tauri/src/lib.rs - Rust entry points
+- src/App.tsx, src/main.tsx - React entry points
+- .gitignore - Updated for Tauri/node_modules
+
+**Learnings for future iterations:**
+- The create-tauri-app command creates files in a subdirectory by default; need to move contents to root
+- Tauri 2.0 uses capabilities system in src-tauri/capabilities/default.json for permissions
+- Hot reload works automatically with Vite dev server on port 1420
+- The app identifier defaults to com.<author>.<appname> in tauri.conf.json
+- cargo check must be run from src-tauri directory or with --manifest-path flag
 
 ---
