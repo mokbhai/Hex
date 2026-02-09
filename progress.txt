@@ -85,3 +85,31 @@
 - Newer versions of some crates may be available (e.g., async-openai v0.32, cpal v0.17)
 
 ---
+
+## 2025-02-09 - E1-4 - Add and configure Tauri plugins (global-shortcut, store, dialog, fs, shell, log)
+
+**What was implemented:**
+- Added tauri-plugin-global-shortcut for system-wide hotkeys
+- Added tauri-plugin-store for settings persistence
+- Added tauri-plugin-dialog for native dialogs
+- Added tauri-plugin-fs for file system access
+- Added tauri-plugin-shell for opening URLs and executing commands
+- Added tauri-plugin-log for logging
+- Registered all plugins in lib.rs with Builder pattern
+- Configured default permissions in capabilities/default.json
+
+**Files changed:**
+- src-tauri/Cargo.toml - Added all Tauri plugin dependencies
+- src-tauri/src/lib.rs - Registered all plugins with tauri::Builder
+- src-tauri/capabilities/default.json - Added plugin permissions
+
+**Learnings for future iterations:**
+- Tauri 2.0 uses a capabilities system for permissions (not in tauri.conf.json)
+- Capabilities are defined in src-tauri/capabilities/*.json files
+- Each plugin has "default" permissions that include common operations
+- global-shortcut and store plugins use Builder::new().build() pattern
+- Some plugins like dialog, fs, shell use init() directly
+- Plugin permissions must be explicitly listed or use "default" shorthand
+- fs:default includes scoped permissions (appdata, config, etc.) not generic paths
+
+---
