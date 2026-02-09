@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Microphone permission description -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Hex needs microphone access to record your voice for transcription.</string>
+
+	<!-- Accessibility permission description -->
+	<key>NSAccessibilityUsageDescription</key>
+	<string>Hex needs accessibility access to paste transcribed text into other applications.</string>
+
+	<!-- Apple Events permission description -->
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Hex needs Apple Events permission to simulate keyboard input for text insertion.</string>
+
+	<!-- Run as menu bar app (hide from dock) - can be toggled via setting -->
+	<key>LSUIElement</key>
+	<false/>
+
+	<!-- Prevent app from sleeping during recording -->
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
+
+	<!-- Audio background mode -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+
+	<!-- App category -->
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
+</dict>
+</plist>
