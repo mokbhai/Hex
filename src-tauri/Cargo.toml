@@ -23,3 +23,15 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Audio recording
+cpal = "0.15"
+
+# Clipboard access
+arboard = "3.4"
+
+# OpenAI API for text refinement
+async-openai = "0.25"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
