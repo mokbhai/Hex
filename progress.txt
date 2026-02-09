@@ -64,3 +64,24 @@
 - Source maps are enabled by default in Vite for debugging
 
 ---
+
+## 2025-02-09 - E1-3 - Add Rust dependencies (cpal, arboard, async-openai, tokio, serde)
+
+**What was implemented:**
+- Added cpal v0.15 for audio device enumeration and recording
+- Added arboard v3.6 for clipboard access
+- Added async-openai v0.25 for OpenAI API integration
+- Added tokio v1 with full features for async runtime
+
+**Files changed:**
+- src-tauri/Cargo.toml - Added cpal, arboard, async-openai, tokio dependencies
+- src-tauri/Cargo.lock - Updated with new dependency tree
+
+**Learnings for future iterations:**
+- cpal requires platform-specific audio backends (coreaudio-rs on macOS)
+- arboard provides cross-platform clipboard access
+- async-openai is a Rust client for the OpenAI API
+- tokio "full" features include everything needed for async I/O, time, and sync
+- Newer versions of some crates may be available (e.g., async-openai v0.32, cpal v0.17)
+
+---
