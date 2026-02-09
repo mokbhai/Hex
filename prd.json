@@ -1,0 +1,1811 @@
+{
+  "project": "Hex Voice",
+  "branchName": "feature/tauri-refactor",
+  "description": "Complete Tauri + Rust refactor of Hex Voice - a macOS voice-to-text menu bar application",
+  "userStories": [
+    {
+      "id": "E1-1",
+      "title": "Initialize Tauri 2.0 project with React + TypeScript",
+      "description": "Create a new Tauri 2.0 project with React and TypeScript configured for the Hex Voice app.",
+      "acceptanceCriteria": [
+        "Project builds successfully with `npm run tauri dev`",
+        "TypeScript is configured with strict mode",
+        "Hot reload works for both frontend and backend",
+        "Basic window is displayed"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "Foundation for all other work"
+    },
+    {
+      "id": "E1-2",
+      "title": "Configure build tools (Vite, Tailwind CSS)",
+      "description": "Set up Vite as the build tool and add Tailwind CSS for styling.",
+      "acceptanceCriteria": [
+        "Production build succeeds with `npm run tauri build`",
+        "Tailwind CSS is configured and working",
+        "CSS bundles correctly in production",
+        "Source maps are enabled for debugging"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E1-3",
+      "title": "Add Rust dependencies (cpal, arboard, async-openai, tokio, serde)",
+      "description": "Install all required Rust crates for audio, clipboard, OpenAI API, async runtime, and serialization.",
+      "acceptanceCriteria": [
+        "Cargo.toml updated with all dependencies",
+        "`cargo check` passes without errors",
+        "All dependencies compile successfully"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E1-4",
+      "title": "Add and configure Tauri plugins (global-shortcut, store, dialog, fs, shell, log)",
+      "description": "Install essential Tauri plugins for system shortcuts, storage, and OS integration.",
+      "acceptanceCriteria": [
+        "All plugins are registered in lib.rs",
+        "Plugin permissions are configured in tauri.conf.json",
+        "Each plugin can be imported and used"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E1-5",
+      "title": "Set up project folder structure",
+      "description": "Create organized folder structure for Rust modules and React components.",
+      "acceptanceCriteria": [
+        "src-tauri/src/ with modules: audio/, transcription/, clipboard/, hotkey/, refinement/, store/, models/",
+        "src/ with: components/, hooks/, stores/, types/, utils/",
+        "README documenting the structure"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E1-6",
+      "title": "Configure macOS code signing and entitlements",
+      "description": "Set up development and production code signing for macOS distribution.",
+      "acceptanceCriteria": [
+        "Development signing works",
+        "Entitlements file configured with necessary permissions",
+        "Info.plist has required entries"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E1-7",
+      "title": "Install frontend dependencies (zustand, lucide-react, @tanstack/react-query)",
+      "description": "Add state management, icons, and data fetching libraries.",
+      "acceptanceCriteria": [
+        "All packages installed via npm",
+        "Type definitions are available",
+        "Packages can be imported successfully"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E2-1",
+      "title": "Add tray-icon plugin integration",
+      "description": "Integrate Tauri tray-icon plugin to show app icon in macOS menu bar.",
+      "acceptanceCriteria": [
+        "Tray icon is visible in menu bar when app launches",
+        "Icon reflects app status (idle, recording, transcribing)",
+        "tray-icon plugin is properly configured"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "Requires Tauri 2.0 tray-icon setup"
+    },
+    {
+      "id": "E2-2",
+      "title": "Hide main window from dock",
+      "description": "Configure the app to run as menu bar only, without a dock icon.",
+      "acceptanceCriteria": [
+        "No dock icon shown (configurable via setting)",
+        "Main window is hidden on launch",
+        "App only accessible via menu bar icon"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E2-3",
+      "title": "Create tray menu with actions",
+      "description": "Build a dropdown menu that appears when clicking the tray icon.",
+      "acceptanceCriteria": [
+        "Menu appears on tray icon click",
+        "Menu items: Start Recording, Settings, History, Quit",
+        "Each item triggers the correct action"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E2-4",
+      "title": "Create popover UI for quick actions",
+      "description": "Build a popover window that shows recording status and quick controls.",
+      "acceptanceCriteria": [
+        "Popover appears on tray icon click (alternative to menu)",
+        "Popover closes on blur/click outside",
+        "Shows current status and action buttons"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E2-5",
+      "title": "Add visual status indicator in menu bar",
+      "description": "Create visual feedback for app state in the menu bar.",
+      "acceptanceCriteria": [
+        "Idle: shows hex icon only",
+        "Recording: pulsing red indicator",
+        "Transcribing: blue indicator",
+        "Smooth transitions between states"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E2-6",
+      "title": "Design and create app icon assets",
+      "description": "Create menu bar icon assets in multiple sizes.",
+      "acceptanceCriteria": [
+        "16x16, 32x32, 64x64 pixel variants",
+        "Light and dark mode support",
+        "Template icon for macOS menu bar"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E3-1",
+      "title": "List available audio devices",
+      "description": "Create Tauri command to enumerate all available microphone input devices.",
+      "acceptanceCriteria": [
+        "Command returns list of input devices",
+        "Each device has name and ID",
+        "Handles 'no devices' case gracefully"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": "Use cpal for device enumeration"
+    },
+    {
+      "id": "E3-2",
+      "title": "Implement audio device selection",
+      "description": "Allow users to select and persist their preferred microphone.",
+      "acceptanceCriteria": [
+        "Selected device is persisted in settings",
+        "Falls back to system default if selected device is missing",
+        "Selection is restored on app launch"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E3-3",
+      "title": "Start audio stream capture",
+      "description": "Begin capturing audio data from the selected microphone using cpal.",
+      "acceptanceCriteria": [
+        "Stream starts without errors",
+        "Uses 16kHz sample rate for transcription compatibility",
+        "Captures mono audio",
+        "Handles stream errors gracefully"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E3-4",
+      "title": "Record audio to buffer",
+      "description": "Capture and store audio data in memory as it streams in.",
+      "acceptanceCriteria": [
+        "Audio data stored as PCM/WAV format in memory",
+        "Buffer grows dynamically as recording continues",
+        "Memory usage is monitored and bounded"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E3-5",
+      "title": "Stop recording and return audio data",
+      "description": "End audio capture and return the complete buffer.",
+      "acceptanceCriteria": [
+        "Stream is closed cleanly",
+        "Returns complete audio buffer",
+        "Handles early stop gracefully",
+        "Resources are properly freed"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E3-6",
+      "title": "Implement real-time audio metering",
+      "description": "Display audio level visualization during recording.",
+      "acceptanceCriteria": [
+        "Meter updates in real-time (60fps)",
+        "Shows dB level relative to full scale",
+        "Visual feedback in UI (progress bar or waveform)"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": "Expose audio level via Tauri event"
+    },
+    {
+      "id": "E3-7",
+      "title": "Convert raw audio to WAV format",
+      "description": "Add WAV header generation for compatibility with transcription engines.",
+      "acceptanceCriteria": [
+        "WAV header is correctly written",
+        "Compatible with whisper.cpp and Sherpa-ONNX",
+        "Sample rate conversion if needed"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E3-8",
+      "title": "Add Voice Activity Detection (VAD)",
+      "description": "Detect when user is speaking vs silence for auto-stop functionality.",
+      "acceptanceCriteria": [
+        "Identifies speech vs silence",
+        "Optional auto-stop on silence (configurable duration)",
+        "Configurable sensitivity threshold",
+        "Works in real-time"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": "Can use webrtc VAD or custom implementation"
+    },
+    {
+      "id": "E4-1",
+      "title": "Choose and integrate transcription engine",
+      "description": "Evaluate and select between whisper.cpp and Sherpa-ONNX, define FFI strategy.",
+      "acceptanceCriteria": [
+        "Decision documented with trade-offs",
+        "FFI strategy defined (bindgen, sys crate, or subprocess)",
+        "Proof of concept works"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": "Consider CoreML acceleration"
+    },
+    {
+      "id": "E4-2",
+      "title": "Add transcription engine bindings",
+      "description": "Integrate chosen engine via FFI or Rust crate.",
+      "acceptanceCriteria": [
+        "Engine compiles for Apple Silicon",
+        "Basic transcription produces text output",
+        "Error handling for missing models"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-3",
+      "title": "Implement model download functionality",
+      "description": "Download transcription models from remote sources with progress tracking.",
+      "acceptanceCriteria": [
+        "Progress bar shown during download",
+        "Models stored in app support directory",
+        "Resume interrupted downloads",
+        "Verify download integrity"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-4",
+      "title": "Create model list UI",
+      "description": "Display available and downloaded models with metadata.",
+      "acceptanceCriteria": [
+        "Curated list: Parakeet TDT v2/v3, Whisper sizes",
+        "Shows download status",
+        "Displays model size and description",
+        "Indicates which is currently selected"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-5",
+      "title": "Add model deletion functionality",
+      "description": "Allow users to remove unused models to free disk space.",
+      "acceptanceCriteria": [
+        "Delete button removes model from disk",
+        "Updates availability status",
+        "Confirmation dialog before deletion",
+        "Can't delete currently selected model"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-6",
+      "title": "Implement model loading",
+      "description": "Load selected model into memory for transcription.",
+      "acceptanceCriteria": [
+        "Model loads successfully",
+        "Memory usage is tracked",
+        "Error handling for corrupt models",
+        "Loading indicator shown"
+      ],
+      "priority": 27,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-7",
+      "title": "Transcribe audio buffer to text",
+      "description": "Convert recorded audio to text using loaded model.",
+      "acceptanceCriteria": [
+        "Returns transcription text",
+        "Includes confidence scores if available",
+        "Handles edge cases (silence, noise, empty audio)",
+        "Processing time is reasonable"
+      ],
+      "priority": 28,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-8",
+      "title": "Add multi-language support",
+      "description": "Support 60+ languages with auto-detection.",
+      "acceptanceCriteria": [
+        "Auto-detect language option",
+        "Manual language selection from 60+ options",
+        "Language setting persisted",
+        "Language code properly passed to engine"
+      ],
+      "priority": 29,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-9",
+      "title": "Add transcription progress indicator",
+      "description": "Show progress during long transcriptions.",
+      "acceptanceCriteria": [
+        "Progress indicator in UI",
+        "Estimated time remaining",
+        "Cancellation support",
+        "Real-time updates via events"
+      ],
+      "priority": 30,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E4-10",
+      "title": "Enable CoreML acceleration",
+      "description": "Use Apple Neural Engine for faster inference when available.",
+      "acceptanceCriteria": [
+        "Models use CoreML when available",
+        "Falls back to CPU if CoreML fails",
+        "Performance comparison documented",
+        "User can toggle CoreML on/off"
+      ],
+      "priority": 31,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-1",
+      "title": "Register global hotkey for recording",
+      "description": "Use Tauri global-shortcut plugin to register system-wide hotkey.",
+      "acceptanceCriteria": [
+        "Hotkey registered system-wide",
+        "Works when app is not focused",
+        "Hotkey is configurable",
+        "Shows current hotkey in settings"
+      ],
+      "priority": 32,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-2",
+      "title": "Implement press-and-hold recording mode",
+      "description": "Record while holding the hotkey, stop on release.",
+      "acceptanceCriteria": [
+        "Recording starts on hotkey press",
+        "Recording stops on key release",
+        "Minimum duration enforcement (configurable)",
+        "Works with modifier keys"
+      ],
+      "priority": 33,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-3",
+      "title": "Implement double-tap recording mode",
+      "description": "Toggle recording on/off with double-tap of hotkey.",
+      "acceptanceCriteria": [
+        "Double-tap detected within timeout",
+        "Toggles recording on/off",
+        "Configurable tap timeout",
+        "Visual feedback on successful double-tap"
+      ],
+      "priority": 34,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-4",
+      "title": "Support modifier-only hotkeys",
+      "description": "Allow single modifier keys (Option, Cmd) as hotkeys.",
+      "acceptanceCriteria": [
+        "Option key works as recording trigger",
+        "0.3s threshold to prevent accidental triggers",
+        "Configurable threshold",
+        "Left/right modifier selection"
+      ],
+      "priority": 35,
+      "passes": false,
+      "notes": "Requires input monitoring permission"
+    },
+    {
+      "id": "E5-5",
+      "title": "Add Escape key cancellation",
+      "description": "Stop recording with Escape key.",
+      "acceptanceCriteria": [
+        "Escape key stops recording immediately",
+        "Works during transcription",
+        "Optional confirmation UI",
+        "Configurable behavior"
+      ],
+      "priority": 36,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-6",
+      "title": "Implement 'force quit' voice command",
+      "description": "Emergency stop using voice command 'force quit hex now'.",
+      "acceptanceCriteria": [
+        "Listens for phrase during recording",
+        "Stops all operations when detected",
+        "Visual feedback when triggered",
+        "Can be disabled in settings"
+      ],
+      "priority": 37,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-7",
+      "title": "Create hotkey configuration UI",
+      "description": "Allow users to customize all hotkeys.",
+      "acceptanceCriteria": [
+        "Record hotkey input in UI",
+        "Shows current hotkey",
+        "Validates key combinations",
+        "Persists changes"
+      ],
+      "priority": 38,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-8",
+      "title": "Add modifier side selection",
+      "description": "Choose left/right/either for modifier keys.",
+      "acceptanceCriteria": [
+        "Left Option, Right Option, or Either",
+        "Setting persisted",
+        "Applied to hotkey detection"
+      ],
+      "priority": 39,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-9",
+      "title": "Add paste last transcript hotkey",
+      "description": "Separate hotkey for re-pasting the last transcription.",
+      "acceptanceCriteria": [
+        "Registered independently from recording hotkey",
+        "Pastes last transcription",
+        "Shows which transcript in notification",
+        "Visual feedback"
+      ],
+      "priority": 40,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E5-10",
+      "title": "Add refinement hotkey",
+      "description": "Separate hotkey to trigger text refinement.",
+      "acceptanceCriteria": [
+        "Separate hotkey for refinement",
+        "Works with selected text",
+        "Indicates refinement in progress",
+        "Replaces text with refined version"
+      ],
+      "priority": 41,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E6-1",
+      "title": "Detect active application",
+      "description": "Find which app is currently focused for text insertion.",
+      "acceptanceCriteria": [
+        "Returns app name and bundle ID",
+        "Updates when focus changes",
+        "Handles no active app gracefully"
+      ],
+      "priority": 42,
+      "passes": false,
+      "notes": "Use NSWorkspace on macOS"
+    },
+    {
+      "id": "E6-2",
+      "title": "Copy text to clipboard",
+      "description": "Place transcribed text in system clipboard.",
+      "acceptanceCriteria": [
+        "Text copied via arboard crate",
+        "Works with all text formats",
+        "Error handling for copy failures"
+      ],
+      "priority": 43,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E6-3",
+      "title": "Paste via clipboard (Cmd+V simulation)",
+      "description": "Trigger Cmd+V programmatically to insert text.",
+      "acceptanceCriteria": [
+        "Simulates Cmd+V keypress",
+        "Uses CGEvent API on macOS",
+        "Respects user setting",
+        "Delays appropriately"
+      ],
+      "priority": 44,
+      "passes": false,
+      "notes": "Requires accessibility permission"
+    },
+    {
+      "id": "E6-4",
+      "title": "Paste via keypress simulation (character by character)",
+      "description": "Fallback method for apps that don't accept paste.",
+      "acceptanceCriteria": [
+        "Types text character by character",
+        "Configurable typing speed",
+        "Handles special characters",
+        "Works with emoji and unicode"
+      ],
+      "priority": 45,
+      "passes": false,
+      "notes": "Slower but more compatible"
+    },
+    {
+      "id": "E6-5",
+      "title": "Add insertion mode setting",
+      "description": "Let users choose between clipboard and keypress simulation.",
+      "acceptanceCriteria": [
+        "'Clipboard' mode (fast)",
+        "'Keypress simulation' mode (compatible)",
+        "Setting persists",
+        "Test button to verify"
+      ],
+      "priority": 46,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E6-6",
+      "title": "Add copy only mode",
+      "description": "Copy without pasting - let user paste manually.",
+      "acceptanceCriteria": [
+        "Optional setting in preferences",
+        "Notification when copied",
+        "User pastes manually",
+        "Shows preview of copied text"
+      ],
+      "priority": 47,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E6-7",
+      "title": "Implement paste last transcript functionality",
+      "description": "Re-paste previous transcription from history.",
+      "acceptanceCriteria": [
+        "Separate hotkey triggers this",
+        "Shows which transcript will be pasted",
+        "Pulls from history",
+        "Notification with transcript preview"
+      ],
+      "priority": 48,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-1",
+      "title": "Implement API key secure storage",
+      "description": "Store OpenAI API key securely in macOS keychain.",
+      "acceptanceCriteria": [
+        "Encrypted storage in keychain",
+        "Input field in settings",
+        "Validation on save (test API call)",
+        "Masked display of existing key"
+      ],
+      "priority": 49,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-2",
+      "title": "Configure OpenAI client",
+      "description": "Set up async-openai client with configurable base URL.",
+      "acceptanceCriteria": [
+        "Default: api.openai.com",
+        "Custom base URL supported (OpenRouter, DeepSeek, etc.)",
+        "Model selection configurable",
+        "Timeout configuration"
+      ],
+      "priority": 50,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-3",
+      "title": "Create refinement prompt",
+      "description": "Design system prompt for grammar and clarity improvement.",
+      "acceptanceCriteria": [
+        "Preserves original meaning",
+        "Improves clarity and grammar",
+        "Concise output",
+        "Configurable by user"
+      ],
+      "priority": 51,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-4",
+      "title": "Add auto-refine toggle",
+      "description": "Setting to enable automatic refinement of all transcriptions.",
+      "acceptanceCriteria": [
+        "Toggle in settings",
+        "Applies to all transcriptions when enabled",
+        "Shows refinement status",
+        "Can be disabled per transcription"
+      ],
+      "priority": 52,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-5",
+      "title": "Implement manual refinement hotkey",
+      "description": "Refine selected text on-demand with hotkey.",
+      "acceptanceCriteria": [
+        "Captures selected text",
+        "Sends to LLM for refinement",
+        "Replaces in place",
+        "Shows refinement status"
+      ],
+      "priority": 53,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-6",
+      "title": "Add model selection UI",
+      "description": "Choose GPT model for refinement.",
+      "acceptanceCriteria": [
+        "GPT-4o-mini (default)",
+        "GPT-4o",
+        "GPT-4.1",
+        "Custom model name input",
+        "Selection persisted"
+      ],
+      "priority": 54,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-7",
+      "title": "Add temperature control",
+      "description": "Adjust creativity/precision of refinement.",
+      "acceptanceCriteria": [
+        "Slider 0-1",
+        "Lower = more precise",
+        "Default 0.3",
+        "Persisted setting"
+      ],
+      "priority": 55,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-8",
+      "title": "Add max tokens control",
+      "description": "Limit output length to prevent truncation.",
+      "acceptanceCriteria": [
+        "Range 64-4096",
+        "Default 512",
+        "Prevents excessive output",
+        "Persisted setting"
+      ],
+      "priority": 56,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-9",
+      "title": "Implement fallback behavior",
+      "description": "Handle API errors gracefully with fallback to original text.",
+      "acceptanceCriteria": [
+        "Shows user-friendly error message",
+        "Falls back to original text",
+        "Retry option",
+        "Logs error for debugging"
+      ],
+      "priority": 57,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E7-10",
+      "title": "Add refinement indicator",
+      "description": "Visual feedback during refinement process.",
+      "acceptanceCriteria": [
+        "Status icon changes during refinement",
+        "Progress indicator",
+        "Notification on complete",
+        "Animation for in-progress state"
+      ],
+      "priority": 58,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-1",
+      "title": "Create settings UI structure",
+      "description": "Build the main settings interface with organization.",
+      "acceptanceCriteria": [
+        "Grouped by category (Hotkeys, Audio, Models, etc.)",
+        "Search functionality",
+        "Clean, organized layout",
+        "Responsive design"
+      ],
+      "priority": 59,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-2",
+      "title": "Build hotkey settings section",
+      "description": "Configure all hotkeys in settings UI.",
+      "acceptanceCriteria": [
+        "Recording hotkey configuration",
+        "Paste last hotkey configuration",
+        "Refinement hotkey configuration",
+        "Modifier side selection"
+      ],
+      "priority": 60,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-3",
+      "title": "Build microphone settings section",
+      "description": "Audio device selection and testing.",
+      "acceptanceCriteria": [
+        "Device picker dropdown",
+        "Test microphone button",
+        "Real-time level meter",
+        "Refresh device list button"
+      ],
+      "priority": 61,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-4",
+      "title": "Build model settings section",
+      "description": "Transcription model selection and management.",
+      "acceptanceCriteria": [
+        "Model list with descriptions",
+        "Download progress bar",
+        "Delete button for each model",
+        "'Show in Finder' button"
+      ],
+      "priority": 62,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-5",
+      "title": "Build language settings section",
+      "description": "Output language selection.",
+      "acceptanceCriteria": [
+        "60+ languages in dropdown",
+        "Auto-detect option at top",
+        "Flag icons for common languages",
+        "Search for languages"
+      ],
+      "priority": 63,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-6",
+      "title": "Build refinement settings section",
+      "description": "LLM configuration for text refinement.",
+      "acceptanceCriteria": [
+        "API key input (masked)",
+        "Model selection dropdown",
+        "Base URL input",
+        "Temperature and max tokens sliders"
+      ],
+      "priority": 64,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-7",
+      "title": "Build audio behavior settings section",
+      "description": "Sound and sleep options.",
+      "acceptanceCriteria": [
+        "Sound effects toggle",
+        "Volume slider (0-100%)",
+        "Prevent sleep toggle",
+        "Media behavior (pause/mute/do nothing)"
+      ],
+      "priority": 65,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-8",
+      "title": "Build general settings section",
+      "description": "App-wide preferences.",
+      "acceptanceCriteria": [
+        "Open on login toggle",
+        "Show dock icon toggle",
+        "Use clipboard to insert toggle",
+        "History limit dropdown"
+      ],
+      "priority": 66,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-9",
+      "title": "Build word transformations section",
+      "description": "Configure word removals and remappings.",
+      "acceptanceCriteria": [
+        "Removal patterns (regex)",
+        "Word remappings",
+        "Enable/disable per item",
+        "Live preview scratchpad"
+      ],
+      "priority": 67,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-10",
+      "title": "Build history settings section",
+      "description": "Transcription history options.",
+      "acceptanceCriteria": [
+        "Save history toggle",
+        "Max entries dropdown",
+        "Clear all button with confirmation"
+      ],
+      "priority": 68,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-11",
+      "title": "Implement settings persistence",
+      "description": "Save and load settings using Tauri store plugin.",
+      "acceptanceCriteria": [
+        "Uses Tauri store plugin",
+        "Survives app restarts",
+        "Migration strategy for version changes",
+        "Default values for new settings"
+      ],
+      "priority": 69,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E8-12",
+      "title": "Add reset to defaults button",
+      "description": "Restore all settings to default values.",
+      "acceptanceCriteria": [
+        "Button in settings",
+        "Double confirmation dialog",
+        "Resets all options",
+        "Shows success notification"
+      ],
+      "priority": 70,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-1",
+      "title": "Implement history storage",
+      "description": "Save transcriptions to disk as JSON.",
+      "acceptanceCriteria": [
+        "JSON file storage in app directory",
+        "Includes text, timestamp, duration",
+        "Reference to audio file",
+        "Atomic writes for safety"
+      ],
+      "priority": 71,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-2",
+      "title": "Build history list UI",
+      "description": "Display transcriptions chronologically.",
+      "acceptanceCriteria": [
+        "Chronological list (newest first)",
+        "Shows preview text",
+        "Timestamp and duration",
+        "Scrollable with infinite loading"
+      ],
+      "priority": 72,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-3",
+      "title": "Add audio playback",
+      "description": "Play original recordings from history.",
+      "acceptanceCriteria": [
+        "Play/pause button",
+        "Seek bar",
+        "Volume control",
+        "Playback time display"
+      ],
+      "priority": 73,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-4",
+      "title": "Add copy from history",
+      "description": "Copy transcript to clipboard from history entries.",
+      "acceptanceCriteria": [
+        "Copy button on each entry",
+        "Visual feedback when copied",
+        "Notification shown",
+        "Works in background"
+      ],
+      "priority": 74,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-5",
+      "title": "Add delete entry functionality",
+      "description": "Remove individual history entries.",
+      "acceptanceCriteria": [
+        "Delete button with confirmation",
+        "Updates list immediately",
+        "Removes associated audio file",
+        "Undo option"
+      ],
+      "priority": 75,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-6",
+      "title": "Add clear all history",
+      "description": "Remove all transcriptions at once.",
+      "acceptanceCriteria": [
+        "Button in settings or history view",
+        "Double confirmation required",
+        "Empties storage completely",
+        "Removes all audio files"
+      ],
+      "priority": 76,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-7",
+      "title": "Track source application",
+      "description": "Show which app received the transcription.",
+      "acceptanceCriteria": [
+        "Displays app icon",
+        "Shows app name",
+        "Filter by app option",
+        "Stored with entry"
+      ],
+      "priority": 77,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-8",
+      "title": "Display timestamps",
+      "description": "Show when transcription occurred.",
+      "acceptanceCriteria": [
+        "Relative time (e.g., '2 hours ago')",
+        "Absolute time on hover",
+        "Local timezone",
+        "Formatted nicely"
+      ],
+      "priority": 78,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-9",
+      "title": "Display duration",
+      "description": "Show length of recording.",
+      "acceptanceCriteria": [
+        "Duration in list (e.g., '0:45')",
+        "Detailed view on click",
+        "Formatted as MM:SS"
+      ],
+      "priority": 79,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-10",
+      "title": "Implement automatic cleanup",
+      "description": "Remove old entries when limit is reached.",
+      "acceptanceCriteria": [
+        "Deletes oldest first",
+        "Respects max entries setting",
+        "Warning before cleanup",
+        "Notification when cleanup happens"
+      ],
+      "priority": 80,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-11",
+      "title": "Add configurable history limit",
+      "description": "Set maximum number of history entries.",
+      "acceptanceCriteria": [
+        "Dropdown: unlimited, 50, 100, 200, 500, 1000",
+        "Applied immediately",
+        "Shows current count vs limit",
+        "Trimming when reduced"
+      ],
+      "priority": 81,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E9-12",
+      "title": "Add history toggle",
+      "description": "Turn history on/off completely.",
+      "acceptanceCriteria": [
+        "Setting to disable",
+        "Clarifies data not saved",
+        "Confirmation on enable",
+        "Clears existing when disabled"
+      ],
+      "priority": 82,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E10-1",
+      "title": "Request microphone permission",
+      "description": "Request audio recording permission from macOS.",
+      "acceptanceCriteria": [
+        "Shows system prompt on first use",
+        "Guides user to Settings if denied",
+        "Retries on grant",
+        "Status tracked in app"
+      ],
+      "priority": 83,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E10-2",
+      "title": "Request accessibility permission",
+      "description": "Request accessibility for text injection.",
+      "acceptanceCriteria": [
+        "Explains why it's needed",
+        "Opens System Preferences",
+        "Detects when granted",
+        "Status indicator"
+      ],
+      "priority": 84,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E10-3",
+      "title": "Request input monitoring permission",
+      "description": "Request input monitoring for global hotkeys.",
+      "acceptanceCriteria": [
+        "Shows system prompt",
+        "Guides user to Settings",
+        "Explains hotkey requirement",
+        "Retries when granted"
+      ],
+      "priority": 85,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E10-4",
+      "title": "Add permission status indicators",
+      "description": "Show granted/denied status for all permissions.",
+      "acceptanceCriteria": [
+        "Visual indicator in settings (red=denied, green=granted)",
+        "Explanatory text for each permission",
+        "Action button to request if denied",
+        "Real-time updates"
+      ],
+      "priority": 86,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E10-5",
+      "title": "Create onboarding flow",
+      "description": "Guide user through permission requests on first launch.",
+      "acceptanceCriteria": [
+        "Step-by-step onboarding",
+        "Request all permissions",
+        "Can't proceed until granted",
+        "Progress indicator"
+      ],
+      "priority": 87,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E10-6",
+      "title": "Recheck permissions on launch",
+      "description": "Verify permissions on app start.",
+      "acceptanceCriteria": [
+        "Check on app start",
+        "Notify if revoked",
+        "Prompt to regrant",
+        "Shows which permissions are missing"
+      ],
+      "priority": 88,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E10-7",
+      "title": "Add help links for permissions",
+      "description": "Link to Apple documentation for each permission.",
+      "acceptanceCriteria": [
+        "'Learn more' links for each permission",
+        "Explains what each permission does",
+        "Troubleshooting tips",
+        "Opens in default browser"
+      ],
+      "priority": 89,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E11-1",
+      "title": "Configure Tauri updater plugin",
+      "description": "Set up automatic updates using Tauri updater.",
+      "acceptanceCriteria": [
+        "Update server configured",
+        "Update interval set",
+        "Check on launch",
+        "Background checks enabled"
+      ],
+      "priority": 90,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E11-2",
+      "title": "Add update notification UI",
+      "description": "Show user when update is available.",
+      "acceptanceCriteria": [
+        "In-app notification",
+        "Shows version number",
+        "Release notes link",
+        "Update and dismiss buttons"
+      ],
+      "priority": 91,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E11-3",
+      "title": "Implement download and install flow",
+      "description": "Automatic update download and installation.",
+      "acceptanceCriteria": [
+        "Download progress indicator",
+        "Install on quit",
+        "Restart app",
+        "Rollback if install fails"
+      ],
+      "priority": 92,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E11-4",
+      "title": "Build changelog view",
+      "description": "Display version history.",
+      "acceptanceCriteria": [
+        "Changelog screen",
+        "Shows recent versions",
+        "Links to full changelog",
+        "Nice formatting"
+      ],
+      "priority": 93,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E11-5",
+      "title": "Build about view",
+      "description": "App information screen.",
+      "acceptanceCriteria": [
+        "Version number",
+        "Build info",
+        "License info",
+        "Credits/links"
+      ],
+      "priority": 94,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E12-1",
+      "title": "Implement sound file management",
+      "description": "Store and load sound effect files.",
+      "acceptanceCriteria": [
+        "Sounds in Resources/Audio/",
+        "Start recording sound",
+        "Stop recording sound",
+        "Success and error sounds"
+      ],
+      "priority": 95,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E12-2",
+      "title": "Play sound effects on events",
+      "description": "Trigger sounds on key events.",
+      "acceptanceCriteria": [
+        "On recording start",
+        "On recording stop",
+        "On transcription complete",
+        "On error"
+      ],
+      "priority": 96,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E12-3",
+      "title": "Add volume control for sounds",
+      "description": "Adjust sound effect volume.",
+      "acceptanceCriteria": [
+        "Slider 0-100%",
+        "Real-time preview on change",
+        "Persisted setting",
+        "Respects system volume"
+      ],
+      "priority": 97,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E12-4",
+      "title": "Add sound effects toggle",
+      "description": "Enable/disable all sound effects.",
+      "acceptanceCriteria": [
+        "Setting in preferences",
+        "Applies immediately",
+        "Per-sound control optional",
+        "Muted by default"
+      ],
+      "priority": 98,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E12-5",
+      "title": "Add custom sounds support",
+      "description": "Allow users to add custom sound effects.",
+      "acceptanceCriteria": [
+        "File picker for audio files",
+        "Validates format (mp3, wav, m4a)",
+        "Per-sound customization",
+        "Preview function"
+      ],
+      "priority": 99,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E13-1",
+      "title": "Implement word removals",
+      "description": "Regex-based word removal patterns.",
+      "acceptanceCriteria": [
+        "Case-insensitive matching",
+        "Whole-word option",
+        "Multiple patterns supported",
+        "Applied in order"
+      ],
+      "priority": 100,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E13-2",
+      "title": "Implement word remappings",
+      "description": "Replace words with alternatives.",
+      "acceptanceCriteria": [
+        "Exact word matching",
+        "Ordered application",
+        "Special character support (\\n, \\t)",
+        "Case-sensitive option"
+      ],
+      "priority": 101,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E13-3",
+      "title": "Add enable/disable per transformation",
+      "description": "Toggle individual transformations.",
+      "acceptanceCriteria": [
+        "Checkbox per item",
+        "Applied only when enabled",
+        "Preview shows effect",
+        "Bulk enable/disable"
+      ],
+      "priority": 102,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E13-4",
+      "title": "Create live preview scratchpad",
+      "description": "Test transformations in real-time.",
+      "acceptanceCriteria": [
+        "Input field for test text",
+        "Shows output in real-time",
+        "Clear visual indication",
+        "Sample text button"
+      ],
+      "priority": 103,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E13-5",
+      "title": "Build transformation UI",
+      "description": "Settings screen for transformations.",
+      "acceptanceCriteria": [
+        "Separate tab in settings",
+        "Add/remove items",
+        "Type indicator (removal/remapping)",
+        "Drag to reorder"
+      ],
+      "priority": 104,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E13-6",
+      "title": "Apply transformations to transcriptions",
+      "description": "Process transcription text through transformations.",
+      "acceptanceCriteria": [
+        "Runs after transcription",
+        "Before refinement",
+        "Shows in transcript",
+        "Performance is good"
+      ],
+      "priority": 105,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E13-7",
+      "title": "Add import/export for transformations",
+      "description": "Backup and share transformations.",
+      "acceptanceCriteria": [
+        "Export to JSON",
+        "Import from file",
+        "Validation on import",
+        "Merge or replace option"
+      ],
+      "priority": 106,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-1",
+      "title": "Establish design system",
+      "description": "Define visual language for the app.",
+      "acceptanceCriteria": [
+        "Color palette defined",
+        "Typography system",
+        "Component library",
+        "Spacing/shadow system"
+      ],
+      "priority": 107,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-2",
+      "title": "Add smooth animations",
+      "description": "Polish transitions and micro-interactions.",
+      "acceptanceCriteria": [
+        "Recording indicator pulse animation",
+        "Loading spinners",
+        "Slide-in menus",
+        "Button hover states"
+      ],
+      "priority": 108,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-3",
+      "title": "Add dark mode support",
+      "description": "Adapt to system theme with manual override.",
+      "acceptanceCriteria": [
+        "Follows macOS appearance",
+        "Manual override option",
+        "All components themed",
+        "Smooth transitions"
+      ],
+      "priority": 109,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-4",
+      "title": "Implement keyboard navigation",
+      "description": "Full keyboard control throughout the app.",
+      "acceptanceCriteria": [
+        "Tab through UI elements",
+        "Enter to activate",
+        "Escape to dismiss",
+        "Arrow keys in lists"
+      ],
+      "priority": 110,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-5",
+      "title": "Add tooltips",
+      "description": "Helpful hints on hover.",
+      "acceptanceCriteria": [
+        "Show on hover with delay",
+        "Dismissible on click/escape",
+        "Context-aware content",
+        "Accessible"
+      ],
+      "priority": 111,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-6",
+      "title": "Design empty states",
+      "description": "Guide users when no data exists.",
+      "acceptanceCriteria": [
+        "No history message with illustration",
+        "No models message with download CTA",
+        "Call-to-action buttons",
+        "Friendly copy"
+      ],
+      "priority": 112,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-7",
+      "title": "Add loading states",
+      "description": "Indicate async operations visually.",
+      "acceptanceCriteria": [
+        "Progress bars for downloads",
+        "Spinners for loading",
+        "Skeleton screens",
+        "Status text"
+      ],
+      "priority": 113,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-8",
+      "title": "Improve error handling UX",
+      "description": "Graceful error display with recovery options.",
+      "acceptanceCriteria": [
+        "User-friendly error messages",
+        "Recovery options suggested",
+        "Error reporting (optional)",
+        "Non-disruptive notifications"
+      ],
+      "priority": 114,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-9",
+      "title": "Add system notifications",
+      "description": "macOS notifications for key events.",
+      "acceptanceCriteria": [
+        "Recording started notification",
+        "Transcription complete notification",
+        "Update available notification",
+        "Error notifications",
+        "User can disable"
+      ],
+      "priority": 115,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E14-10",
+      "title": "Performance optimization",
+      "description": "Ensure smooth operation with profiling.",
+      "acceptanceCriteria": [
+        "<100ms response time for UI",
+        "Efficient rendering",
+        "Memory usage monitoring",
+        "Startup time optimized"
+      ],
+      "priority": 116,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-1",
+      "title": "Add Rust unit tests",
+      "description": "Test backend logic modules.",
+      "acceptanceCriteria": [
+        "Audio module tests",
+        "Clipboard tests",
+        "Store tests",
+        ">80% coverage",
+        "cargo test passes"
+      ],
+      "priority": 117,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-2",
+      "title": "Add TypeScript unit tests",
+      "description": "Test frontend logic.",
+      "acceptanceCriteria": [
+        "Component tests",
+        "Hook tests",
+        "Store tests",
+        ">80% coverage",
+        "Vitest passes"
+      ],
+      "priority": 118,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-3",
+      "title": "Add integration tests",
+      "description": "Test module interactions.",
+      "acceptanceCriteria": [
+        "Recording to transcription flow",
+        "Hotkey to action flow",
+        "Settings persistence",
+        "End-to-end scenarios"
+      ],
+      "priority": 119,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-4",
+      "title": "Add E2E tests",
+      "description": "Test complete user flows.",
+      "acceptanceCriteria": [
+        "Record and transcribe flow",
+        "Refine text flow",
+        "View history flow",
+        "Change settings flow",
+        "Playwright or similar"
+      ],
+      "priority": 120,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-5",
+      "title": "Create manual testing checklist",
+      "description": "Document test scenarios for QA.",
+      "acceptanceCriteria": [
+        "All features covered",
+        "Reproducible steps",
+        "Expected results documented",
+        "Pass/fail checkboxes"
+      ],
+      "priority": 121,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-6",
+      "title": "Accessibility testing",
+      "description": "Ensure VoiceOver support.",
+      "acceptanceCriteria": [
+        "All labels read correctly",
+        "Keyboard navigation works",
+        "Contrast ratios meet WCAG",
+        "VoiceOver testing complete"
+      ],
+      "priority": 122,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-7",
+      "title": "Performance testing",
+      "description": "Benchmark key operations.",
+      "acceptanceCriteria": [
+        "Recording latency measured",
+        "Transcription speed benchmarked",
+        "Memory usage profiled",
+        "Startup time measured",
+        "Documented results"
+      ],
+      "priority": 123,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E15-8",
+      "title": "Add crash reporting",
+      "description": "Collect and report crashes.",
+      "acceptanceCriteria": [
+        "Sentry integration or similar",
+        "Stack traces captured",
+        "User context included",
+        "Opt-in for privacy"
+      ],
+      "priority": 124,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E16-1",
+      "title": "Create README",
+      "description": "Project overview and setup instructions.",
+      "acceptanceCriteria": [
+        "Project description",
+        "Installation instructions",
+        "Development setup",
+        "Contributing guidelines"
+      ],
+      "priority": 125,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E16-2",
+      "title": "Create user guide",
+      "description": "How to use the app documentation.",
+      "acceptanceCriteria": [
+        "Getting started guide",
+        "Features explained",
+        "Screenshots included",
+        "Troubleshooting section"
+      ],
+      "priority": 126,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E16-3",
+      "title": "Document Tauri commands API",
+      "description": "Document all backend commands.",
+      "acceptanceCriteria": [
+        "All commands listed",
+        "Parameters described",
+        "Return types documented",
+        "Usage examples included"
+      ],
+      "priority": 127,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E16-4",
+      "title": "Create architecture documentation",
+      "description": "Explain system design.",
+      "acceptanceCriteria": [
+        "Module overview",
+        "Data flow diagrams",
+        "Technology choices explained",
+        "Mermaid diagrams included"
+      ],
+      "priority": 128,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E16-5",
+      "title": "Create contributing guide",
+      "description": "For external contributors.",
+      "acceptanceCriteria": [
+        "Setup steps",
+        "Code style guidelines",
+        "PR process",
+        "Community guidelines"
+      ],
+      "priority": 129,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "E16-6",
+      "title": "Create changelog",
+      "description": "Version history.",
+      "acceptanceCriteria": [
+        "Semantic versioning followed",
+        "Release notes for each version",
+        "Migration guides for breaking changes",
+        "Linked to git tags"
+      ],
+      "priority": 130,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

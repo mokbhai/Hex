@@ -1,0 +1,7 @@
+# Ralph Progress Log for Hex Voice
+# This file tracks learnings across iterations for autonomous AI development
+
+## Codebase Patterns
+# Add reusable patterns here as they are discovered
+
+---
