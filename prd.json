@@ -28,7 +28,7 @@
         "Source maps are enabled for debugging"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {

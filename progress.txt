@@ -8,6 +8,9 @@
 - Tauri commands are registered in src-tauri/src/lib.rs with #[tauri::command]
 - All Tauri frontend code goes in src/ directory
 - All Rust backend code goes in src-tauri/src/ directory
+- Tailwind CSS v3 uses tailwind.config.js with content paths for class scanning
+- Tailwind directives (@tailwind base/components/utilities) go in index.css
+- PostCSS config uses ESM export syntax with tailwindcss and autoprefixer plugins
 
 ---
 
@@ -34,5 +37,30 @@
 - Hot reload works automatically with Vite dev server on port 1420
 - The app identifier defaults to com.<author>.<appname> in tauri.conf.json
 - cargo check must be run from src-tauri directory or with --manifest-path flag
+
+---
+
+## 2025-02-09 - E1-2 - Configure build tools (Vite, Tailwind CSS)
+
+**What was implemented:**
+- Installed Tailwind CSS v3 with PostCSS and Autoprefixer
+- Created tailwind.config.js with content path configuration for scanning src directory
+- Created postcss.config.js for PostCSS processing
+- Created src/index.css with Tailwind directives (base, components, utilities)
+- Updated main.tsx to import index.css for Tailwind styles
+
+**Files changed:**
+- package.json - Added tailwindcss, postcss, autoprefixer as dev dependencies
+- tailwind.config.js - New Tailwind configuration with content paths
+- postcss.config.js - New PostCSS configuration
+- src/index.css - New file with Tailwind directives
+- src/main.tsx - Added index.css import
+
+**Learnings for future iterations:**
+- Tailwind CSS v4 has breaking changes and different configuration; use v3.x for stability
+- Tailwind v3 requires content paths in config to scan for utility classes
+- The @tailwind directives must be in a CSS file imported by the main entry point
+- Vite bundles CSS efficiently (6.42 kB for base Tailwind styles)
+- Source maps are enabled by default in Vite for debugging
 
 ---
