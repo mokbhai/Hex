@@ -11,6 +11,9 @@
 - Tailwind CSS v3 uses tailwind.config.js with content paths for class scanning
 - Tailwind directives (@tailwind base/components/utilities) go in index.css
 - PostCSS config uses ESM export syntax with tailwindcss and autoprefixer plugins
+- macOS entitlements are configured in src-tauri/entitlements.plist for App Sandbox permissions
+- macOS Info.plist entries go in src-tauri/Info.plist for privacy usage descriptions
+- tauri.conf.json bundle.macOS section references both entitlements and infoPlist files
 
 ---
 
@@ -142,5 +145,31 @@
 - chrono requires the "serde" feature to work with Serialize/Deserialize derives
 - Use uuid::Uuid::new_v4().to_string() for generating unique IDs
 - Stub implementations with empty structs are enough for module structure setup
+
+---
+
+## 2025-02-09 - E1-6 - Configure macOS code signing and entitlements
+
+**What was implemented:**
+- Created entitlements.plist with macOS App Sandbox permissions (audio input, network client/server, file access, app groups)
+- Created Info.plist with privacy usage descriptions for microphone, accessibility, and Apple Events
+- Configured macOS bundle settings in tauri.conf.json (entitlements path, infoPlist path, minimum system version)
+- Added documentation comments to build.rs about entitlements handling
+
+**Files changed:**
+- src-tauri/entitlements.plist - New file with App Sandbox entitlements
+- src-tauri/Info.plist - New file with privacy usage descriptions and app configuration
+- src-tauri/tauri.conf.json - Added macOS bundle configuration
+- src-tauri/build.rs - Added documentation comments
+
+**Learnings for future iterations:**
+- Tauri 2.0 uses entitlements.plist for App Sandbox permissions (audio, network, file access)
+- Info.plist requires NSMicrophoneUsageDescription for microphone access permission prompt
+- Info.plist requires NSAccessibilityUsageDescription for accessibility permission prompt
+- Info.plist requires NSAppleEventsUsageDescription for Apple Events permission (for CGEvent keyboard simulation)
+- LSUIElement=false in Info.plist controls dock icon visibility (set to true for menu bar only apps)
+- get-task-allow entitlement is needed for development builds (can be removed for production)
+- tauri_build::build() automatically handles entitlements and Info.plist merging
+- Minimum system version is set in tauri.conf.json bundle.macOS.minimumSystemVersion
 
 ---
