@@ -113,3 +113,34 @@
 - fs:default includes scoped permissions (appdata, config, etc.) not generic paths
 
 ---
+
+## 2025-02-09 - E1-5 - Set up project folder structure
+
+**What was implemented:**
+- Created Rust module folders: audio/, transcription/, clipboard/, hotkey/, refinement/, store/, models/
+- Added mod.rs files for all modules with placeholder exports
+- Added stub implementations for module sub-files with basic types
+- Created frontend folders: components/, hooks/, stores/, types/, utils/
+- Added chrono (with serde feature) and uuid dependencies for data models
+- Updated README with project structure documentation
+
+**Files changed:**
+- src-tauri/src/lib.rs - Added module declarations
+- src-tauri/src/audio/ - Audio recording module (recorder.rs, device.rs, mod.rs)
+- src-tauri/src/transcription/ - Speech-to-text module (engine.rs, model.rs, mod.rs)
+- src-tauri/src/clipboard/ - Text injection module (clipboard.rs, mod.rs)
+- src-tauri/src/hotkey/ - Global hotkey module (hotkey.rs, press_and_hold.rs, double_tap.rs, mod.rs)
+- src-tauri/src/refinement/ - LLM text refinement (refinement.rs, prompt.rs, mod.rs)
+- src-tauri/src/store/ - Settings persistence (settings.rs, history.rs, mod.rs)
+- src-tauri/src/models/ - Data models (transcription.rs, settings.rs, history.rs, mod.rs)
+- src/components/, src/hooks/, src/stores/, src/types/, src/utils/ - Frontend folders
+- README.md - Added project structure documentation
+
+**Learnings for future iterations:**
+- Rust modules need both a folder with mod.rs and individual .rs files for submodules
+- Naming a struct `Device` conflicts with `cpal::Device`; use descriptive names like `AudioDevice`
+- chrono requires the "serde" feature to work with Serialize/Deserialize derives
+- Use uuid::Uuid::new_v4().to_string() for generating unique IDs
+- Stub implementations with empty structs are enough for module structure setup
+
+---

@@ -67,7 +67,7 @@
         "README documenting the structure"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
