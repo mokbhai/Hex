@@ -11,6 +11,8 @@ let package = Package(
 	        .package(url: "https://github.com/Clipy/Sauce", branch: "master"),
 	        .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.0.0"),
 	        .package(url: "https://github.com/apple/swift-log", from: "1.6.4"),
+	        .package(url: "https://github.com/ml-explore/mlx-swift", from: "0.30.0"),
+	        .package(url: "https://github.com/ml-explore/mlx-swift-lm", from: "2.29.0"),
 	    ],
     targets: [
 	    .target(
@@ -20,6 +22,9 @@ let package = Package(
 	            .product(name: "Dependencies", package: "swift-dependencies"),
 	            .product(name: "DependenciesMacros", package: "swift-dependencies"),
 	            .product(name: "Logging", package: "swift-log"),
+	            .product(name: "MLXLLM", package: "mlx-swift-lm"),
+	            .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
+	            .product(name: "MLXNN", package: "mlx-swift"),
 	        ],
 	        path: "Sources/HexCore",
 	        linkerSettings: [

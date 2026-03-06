@@ -21,6 +21,10 @@ extension SharedReaderKey
     Self[.inMemory("isSettingPasteLastTranscriptHotkey"), default: false]
   }
 
+  static var isSettingRefinementHotkey: Self {
+    Self[.inMemory("isSettingRefinementHotkey"), default: false]
+  }
+
   static var isRemappingScratchpadFocused: Self {
     Self[.inMemory("isRemappingScratchpadFocused"), default: false]
   }
@@ -35,6 +39,7 @@ struct SettingsFeature {
     @Shared(.hexSettings) var hexSettings: HexSettings
     @Shared(.isSettingHotKey) var isSettingHotKey: Bool = false
     @Shared(.isSettingPasteLastTranscriptHotkey) var isSettingPasteLastTranscriptHotkey: Bool = false
+    @Shared(.isSettingRefinementHotkey) var isSettingRefinementHotkey: Bool = false
     @Shared(.isRemappingScratchpadFocused) var isRemappingScratchpadFocused: Bool = false
     @Shared(.transcriptionHistory) var transcriptionHistory: TranscriptionHistory
     @Shared(.hotkeyPermissionState) var hotkeyPermissionState: HotkeyPermissionState
@@ -42,6 +47,7 @@ struct SettingsFeature {
     var languages: IdentifiedArrayOf<Language> = []
     var currentModifiers: Modifiers = .init(modifiers: [])
     var currentPasteLastModifiers: Modifiers = .init(modifiers: [])
+    var currentRefinementModifiers: Modifiers = .init(modifiers: [])
     var remappingScratchpadText: String = ""
     
     // Available microphones
@@ -61,7 +67,9 @@ struct SettingsFeature {
     case task
     case startSettingHotKey
     case startSettingPasteLastTranscriptHotkey
+    case startSettingRefinementHotkey
     case clearPasteLastTranscriptHotkey
+    case clearRefinementHotkey
     case keyEvent(KeyEvent)
     case toggleOpenOnLogin(Bool)
     case togglePreventSystemSleep(Bool)
@@ -227,7 +235,38 @@ struct SettingsFeature {
         state.$hexSettings.withLock { $0.pasteLastTranscriptHotkey = nil }
         return .none
 
+      case .startSettingRefinementHotkey:
+        state.$isSettingRefinementHotkey.withLock { $0 = true }
+        state.currentRefinementModifiers = .init(modifiers: [])
+        return .none
+
+      case .clearRefinementHotkey:
+        state.$hexSettings.withLock { $0.refinementHotkey = nil }
+        return .none
+
       case let .keyEvent(keyEvent):
+        if state.isSettingRefinementHotkey {
+          if keyEvent.key == .escape {
+            state.$isSettingRefinementHotkey.withLock { $0 = false }
+            state.currentRefinementModifiers = []
+            return .none
+          }
+
+          state.currentRefinementModifiers = keyEvent.modifiers.union(state.currentRefinementModifiers)
+          let currentModifiers = state.currentRefinementModifiers
+          if let key = keyEvent.key {
+            guard !currentModifiers.isEmpty else {
+              return .none
+            }
+            state.$hexSettings.withLock {
+              $0.refinementHotkey = HotKey(key: key, modifiers: currentModifiers.erasingSides())
+            }
+            state.$isSettingRefinementHotkey.withLock { $0 = false }
+            state.currentRefinementModifiers = []
+          }
+          return .none
+        }
+
         // Handle paste last transcript hotkey setting
         if state.isSettingPasteLastTranscriptHotkey {
           if keyEvent.key == .escape {

@@ -10,10 +10,12 @@ updates/
 buildServer.json
 bin
 scripts
-tools
+
+# Ignore tools build artifacts but track source
+tools/node_modules/
 ExportOptions.plist
 HexCore/.build
-HexCore/.swiftpm/xcode/xcuserdata/kit.xcuserdatad/xcschemes
+HexCore/.swiftpm/
 FluidAudio/
 node_modules/
 .npm-cache/
@@ -21,3 +23,4 @@ node_modules/
 
 # Claude
 .claude/
+.env

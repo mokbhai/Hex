@@ -9,6 +9,7 @@ public enum RecordingAudioBehavior: String, Codable, CaseIterable, Equatable, Se
 /// User-configurable settings saved to disk.
 public struct HexSettings: Codable, Equatable, Sendable {
 	public static let defaultPasteLastTranscriptHotkey = HotKey(key: .v, modifiers: [.option, .shift])
+	public static let defaultRefinementHotkey = HotKey(key: .r, modifiers: [.command])
 	public static let baseSoundEffectsVolume: Double = HexCoreConstants.baseSoundEffectsVolume
 	public static let defaultWordRemovals: [WordRemoval] = [
 		.init(pattern: "uh+"),
@@ -40,6 +41,13 @@ public struct HexSettings: Codable, Equatable, Sendable {
 	public var saveTranscriptionHistory: Bool
 	public var maxHistoryEntries: Int?
 	public var pasteLastTranscriptHotkey: HotKey?
+	public var refinementHotkey: HotKey?
+	public var refinementModelIdentifier: String?
+	public var autoRefineTranscriptions: Bool
+	public var refinementEnabled: Bool
+	public var refinementMaxTokens: Int
+	public var refinementTemperature: Double
+	public var refinementTopP: Double
 	public var hasCompletedModelBootstrap: Bool
 	public var hasCompletedStorageMigration: Bool
 	public var wordRemovalsEnabled: Bool
@@ -64,6 +72,13 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		saveTranscriptionHistory: Bool = true,
 		maxHistoryEntries: Int? = nil,
 		pasteLastTranscriptHotkey: HotKey? = HexSettings.defaultPasteLastTranscriptHotkey,
+		refinementHotkey: HotKey? = HexSettings.defaultRefinementHotkey,
+		refinementModelIdentifier: String? = "mlx-community/phi-3-mini-4k-instruct",
+		autoRefineTranscriptions: Bool = false,
+		refinementEnabled: Bool = false,
+		refinementMaxTokens: Int = 512,
+		refinementTemperature: Double = 0.7,
+		refinementTopP: Double = 0.9,
 		hasCompletedModelBootstrap: Bool = false,
 		hasCompletedStorageMigration: Bool = false,
 		wordRemovalsEnabled: Bool = false,
@@ -87,6 +102,13 @@ public struct HexSettings: Codable, Equatable, Sendable {
 		self.saveTranscriptionHistory = saveTranscriptionHistory
 		self.maxHistoryEntries = maxHistoryEntries
 		self.pasteLastTranscriptHotkey = pasteLastTranscriptHotkey
+		self.refinementHotkey = refinementHotkey
+		self.refinementModelIdentifier = refinementModelIdentifier
+		self.autoRefineTranscriptions = autoRefineTranscriptions
+		self.refinementEnabled = refinementEnabled
+		self.refinementMaxTokens = refinementMaxTokens
+		self.refinementTemperature = refinementTemperature
+		self.refinementTopP = refinementTopP
 		self.hasCompletedModelBootstrap = hasCompletedModelBootstrap
 		self.hasCompletedStorageMigration = hasCompletedStorageMigration
 		self.wordRemovalsEnabled = wordRemovalsEnabled
@@ -131,6 +153,13 @@ private enum HexSettingKey: String, CodingKey, CaseIterable {
 	case saveTranscriptionHistory
 	case maxHistoryEntries
 	case pasteLastTranscriptHotkey
+	case refinementHotkey
+	case refinementModelIdentifier
+	case autoRefineTranscriptions
+	case refinementEnabled
+	case refinementMaxTokens
+	case refinementTemperature
+	case refinementTopP
 	case hasCompletedModelBootstrap
 	case hasCompletedStorageMigration
 	case wordRemovalsEnabled
@@ -254,6 +283,27 @@ private enum HexSettingsSchema {
 				try container.encodeIfPresent(value, forKey: key)
 			}
 		).eraseToAny(),
+		SettingsField(
+			.refinementHotkey,
+			keyPath: \.refinementHotkey,
+			default: defaults.refinementHotkey,
+			encode: { container, key, value in
+				try container.encodeIfPresent(value, forKey: key)
+			}
+		).eraseToAny(),
+		SettingsField(
+			.refinementModelIdentifier,
+			keyPath: \.refinementModelIdentifier,
+			default: defaults.refinementModelIdentifier,
+			encode: { container, key, value in
+				try container.encodeIfPresent(value, forKey: key)
+			}
+		).eraseToAny(),
+		SettingsField(.autoRefineTranscriptions, keyPath: \.autoRefineTranscriptions, default: defaults.autoRefineTranscriptions).eraseToAny(),
+		SettingsField(.refinementEnabled, keyPath: \.refinementEnabled, default: defaults.refinementEnabled).eraseToAny(),
+		SettingsField(.refinementMaxTokens, keyPath: \.refinementMaxTokens, default: defaults.refinementMaxTokens).eraseToAny(),
+		SettingsField(.refinementTemperature, keyPath: \.refinementTemperature, default: defaults.refinementTemperature).eraseToAny(),
+		SettingsField(.refinementTopP, keyPath: \.refinementTopP, default: defaults.refinementTopP).eraseToAny(),
 		SettingsField(.hasCompletedModelBootstrap, keyPath: \.hasCompletedModelBootstrap, default: defaults.hasCompletedModelBootstrap).eraseToAny(),
 		SettingsField(.hasCompletedStorageMigration, keyPath: \.hasCompletedStorageMigration, default: defaults.hasCompletedStorageMigration).eraseToAny(),
 		SettingsField(.wordRemovalsEnabled, keyPath: \.wordRemovalsEnabled, default: defaults.wordRemovalsEnabled).eraseToAny(),

@@ -78,9 +78,16 @@ class HexAppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 		let transcriptionStore = HexApp.appStore.scope(state: \.transcription, action: \.transcription)
-		let transcriptionView = TranscriptionView(store: transcriptionStore).padding().padding(.top).padding(.top)
-			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-		invisibleWindow = InvisibleWindow.fromView(transcriptionView)
+		let refinementStore = HexApp.appStore.scope(state: \.refinement, action: \.refinement)
+		let overlayView = VStack(spacing: 8) {
+			TranscriptionView(store: transcriptionStore)
+			RefinementView(store: refinementStore)
+		}
+		.padding()
+		.padding(.top)
+		.padding(.top)
+		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+		invisibleWindow = InvisibleWindow.fromView(overlayView)
 		invisibleWindow?.makeKeyAndOrderFront(nil)
 	}
 

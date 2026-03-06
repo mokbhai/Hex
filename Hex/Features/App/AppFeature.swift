@@ -23,6 +23,7 @@ struct AppFeature {
 	@ObservableState
 	struct State {
 		var transcription: TranscriptionFeature.State = .init()
+    var refinement: RefinementFeature.State = .init()
 		var settings: SettingsFeature.State = .init()
 		var history: HistoryFeature.State = .init()
 		var activeTab: ActiveTab = .settings
@@ -38,6 +39,7 @@ struct AppFeature {
   enum Action: BindableAction {
     case binding(BindingAction<State>)
     case transcription(TranscriptionFeature.Action)
+    case refinement(RefinementFeature.Action)
     case settings(SettingsFeature.Action)
     case history(HistoryFeature.Action)
     case setActiveTab(ActiveTab)
@@ -66,6 +68,10 @@ struct AppFeature {
       TranscriptionFeature()
     }
 
+    Scope(state: \.refinement, action: \.refinement) {
+      RefinementFeature()
+    }
+
     Scope(state: \.settings, action: \.settings) {
       SettingsFeature()
     }
@@ -83,7 +89,8 @@ struct AppFeature {
         return .merge(
           startPasteLastTranscriptMonitoring(),
           ensureSelectedModelReadiness(),
-          startPermissionMonitoring()
+          startPermissionMonitoring(),
+          startRefinementHotkeyMonitoring()
         )
         
       case .pasteLastTranscript:
@@ -109,6 +116,9 @@ struct AppFeature {
         }
 
       case .transcription:
+        return .none
+
+      case .refinement:
         return .none
 
       case .settings:
@@ -197,6 +207,44 @@ struct AppFeature {
           send(.pasteLastTranscript)
         }
         return true // Intercept the key event
+      }
+
+      defer { token.cancel() }
+
+      await withTaskCancellationHandler {
+        while !Task.isCancelled {
+          try? await Task.sleep(for: .seconds(60))
+        }
+      } onCancel: {
+        token.cancel()
+      }
+    }
+  }
+
+  private func startRefinementHotkeyMonitoring() -> Effect<Action> {
+    .run { send in
+      @Shared(.isSettingRefinementHotkey) var isSettingRefinementHotkey: Bool
+      @Shared(.hexSettings) var hexSettings: HexSettings
+
+      let token = keyEventMonitor.handleKeyEvent { keyEvent in
+        // Skip while capturing a hotkey
+        if isSettingRefinementHotkey {
+          return false
+        }
+
+        guard
+          let refinementHotkey = hexSettings.refinementHotkey,
+          let key = keyEvent.key,
+          key == refinementHotkey.key,
+          keyEvent.modifiers.matchesExactly(refinementHotkey.modifiers)
+        else {
+          return false
+        }
+
+        MainActor.assumeIsolated {
+          send(.refinement(.hotkeyTriggered))
+        }
+        return true
       }
 
       defer { token.cancel() }
